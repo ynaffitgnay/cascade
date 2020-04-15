@@ -1656,7 +1656,7 @@ system_task_enable
     $$ = sb;
     parser->set_loc($$);
   }
-  | SYS_FSEEK OPAREN expression COMMA number COMMA number CPAREN SCOLON {
+  | SYS_FSEEK OPAREN expression COMMA expression COMMA number CPAREN SCOLON {
     $$ = new FseekStatement($3, $5, $7);
     parser->set_loc($$);
   }

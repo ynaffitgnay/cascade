@@ -508,6 +508,7 @@ inline bool AvmmLogic<V,A,T>::handle_tasks() {
         is.second = get_stream(is.first);
       }
 
+      fs->accept_offset(&sync_);
       const auto offset = eval_.get_value(fs->get_offset()).to_uint();
       const auto op = eval_.get_value(fs->get_op()).to_uint();
       const auto way = (op == 0) ? std::ios_base::beg : (op == 1) ? std::ios_base::cur : std::ios_base::end;
@@ -632,6 +633,7 @@ inline void AvmmLogic<V,A,T>::Inserter::visit(const FseekStatement* fs) {
   av_->tasks_.push_back(fs);
   in_args_ = true;
   fs->accept_fd(this);
+  fs->accept_offset(this);
   in_args_ = false;
 }
 

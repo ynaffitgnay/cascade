@@ -40,7 +40,7 @@ namespace cascade {
 class FseekStatement : public SystemTaskEnableStatement {
   public:
     // Constructors:
-    explicit FseekStatement(Expression* fd__, Number* offset__, Number* op__);
+    explicit FseekStatement(Expression* fd__, Expression* offset__, Number* op__);
     ~FseekStatement() override;
 
     // Node Interface:
@@ -49,16 +49,16 @@ class FseekStatement : public SystemTaskEnableStatement {
 
     // Get/Set:
     PTR_GET_SET(FseekStatement, Expression, fd)
-    PTR_GET_SET(FseekStatement, Number, offset)
+    PTR_GET_SET(FseekStatement, Expression, offset)
     PTR_GET_SET(FseekStatement, Number, op)
 
   private:
     PTR_ATTR(Expression, fd);
-    PTR_ATTR(Number, offset);
+    PTR_ATTR(Expression, offset);
     PTR_ATTR(Number, op);
 };
 
-inline FseekStatement::FseekStatement(Expression* fd__, Number* offset__, Number* op__) : SystemTaskEnableStatement(Node::Tag::fseek_statement) {
+inline FseekStatement::FseekStatement(Expression* fd__, Expression* offset__, Number* op__) : SystemTaskEnableStatement(Node::Tag::fseek_statement) {
   PTR_SETUP(fd);
   PTR_SETUP(offset);
   PTR_SETUP(op);
