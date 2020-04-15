@@ -394,7 +394,7 @@ inline void Machinify<T>::run(ModuleDeclaration* md) {
     auto* tcs = static_cast<const TimingControlStatement*>(ac->get_stmt());
     assert(tcs->get_ctrl()->is(Node::Tag::event_control));
     auto* ec = static_cast<const EventControl*>(tcs->get_ctrl());
-    if (ec->front_events()->get_type() == Event::Type::EDGE) {
+    if (ec->empty_events() || (ec->front_events()->get_type() == Event::Type::EDGE)) {
       ++i;
       continue;
     }
