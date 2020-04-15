@@ -525,7 +525,7 @@ brief description of their behavior is shown below.
 |                       | $fseek(fd, off, dir)        |  x        |             |                  |
 |                       | $ftell(fd)                  |           | x           |                  |
 |                       | $fwrite(fd, fmt, args...)   |  x        |             |                  |
-|                       | $rewind(fd, off, dir)       |  x        |             |                  |
+|                       | $rewind(fd)                 |  x        |             |                  |
 |                       | $ungetc(c, dir)             |           | x           |                  |
 
 
