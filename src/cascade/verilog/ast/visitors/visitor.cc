@@ -311,6 +311,10 @@ void Visitor::visit(const SaveStatement* ss) {
   ss->accept_arg(this);
 }
 
+void Visitor::visit(const YieldStatement* ys) {
+  // Does nothing.
+}
+
 void Visitor::visit(const WhileStatement* ws) {
   ws->accept_cond(this);
   ws->accept_stmt(this); 

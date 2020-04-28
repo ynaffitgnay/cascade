@@ -84,6 +84,7 @@
 #include "verilog/ast/types/restart_statement.h"
 #include "verilog/ast/types/retarget_statement.h"
 #include "verilog/ast/types/save_statement.h"
+#include "verilog/ast/types/yield_statement.h"
 #include "verilog/ast/types/while_statement.h"
 #include "verilog/ast/types/event_control.h"
 #include "verilog/ast/types/variable_assign.h"

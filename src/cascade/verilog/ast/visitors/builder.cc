@@ -450,6 +450,10 @@ Statement* Builder::build(const SaveStatement* ss) {
   );
 }
 
+Statement* Builder::build(const YieldStatement* ys) {
+  return new YieldStatement();
+}
+
 Statement* Builder::build(const WhileStatement* ws) {
   return new WhileStatement(
     ws->accept_cond(this),

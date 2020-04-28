@@ -544,6 +544,7 @@
   friend class RestartStatement; \
   friend class RetargetStatement; \
   friend class SaveStatement; \
+  friend class YieldStatement; \
   friend class EventControl; \
   friend class VariableAssign
 

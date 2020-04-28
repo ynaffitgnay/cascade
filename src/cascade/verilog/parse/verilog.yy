@@ -242,6 +242,7 @@ cascade::SeqBlock* desugar_io(bool input, const cascade::Expression* fd, InItr b
 %token SYS_SHOWVARS    "$showvars"
 %token SYS_WARNING     "$warning"
 %token SYS_WRITE       "$write"
+%token SYS_YIELD       "$yield"
 
 /* Identifiers and Strings */
 %token <std::string> SIMPLE_ID
@@ -1820,6 +1821,14 @@ system_task_enable
     }
     sb->push_back_stmts(new FflushStatement(new Identifier("STDOUT")));
     $$ = sb;
+    parser->set_loc($$);
+  }
+  | SYS_YIELD SCOLON { 
+    $$ = new YieldStatement(); 
+    parser->set_loc($$);
+  }
+  | SYS_YIELD OPAREN CPAREN SCOLON { 
+    $$ = new YieldStatement(); 
     parser->set_loc($$);
   }
   ;

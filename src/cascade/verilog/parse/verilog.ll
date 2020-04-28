@@ -465,6 +465,7 @@ IF_TEXT     ([^`]*)
 "$showvars"   return yyParser::make_SYS_SHOWVARS(parser->get_loc());
 "$warning"    return yyParser::make_SYS_WARNING(parser->get_loc());
 "$write"      return yyParser::make_SYS_WRITE(parser->get_loc());
+"$yield"      return yyParser::make_SYS_YIELD(parser->get_loc());
 
 {DECIMAL}"."{DECIMAL}                       return yyParser::make_REAL_NUM(to_real(yytext), parser->get_loc());
 {DECIMAL}("."{DECIMAL})?[eE][\+-]?{DECIMAL} return yyParser::make_REAL_NUM(to_real(yytext), parser->get_loc());

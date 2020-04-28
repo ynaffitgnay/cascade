@@ -95,6 +95,7 @@ struct Editor {
   virtual void edit(RestartStatement* rs);
   virtual void edit(RetargetStatement* rs);
   virtual void edit(SaveStatement* ss);
+  virtual void edit(YieldStatement* ys);
   virtual void edit(WhileStatement* ws);
   virtual void edit(EventControl* ec);
   virtual void edit(VariableAssign* va);
