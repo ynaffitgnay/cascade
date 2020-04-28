@@ -103,7 +103,7 @@ class Core {
     // This method must return true if the previous call to either evaluate()
     // or update() resulted in at least one system task that requires attention
     // at the end of the current time step: $debug(), $finish(), $save(),
-    // $restart(), or $retarget(). If you don't want to think too hard about
+    // $restart(), $retarget(), or $yield(). If you don't want to think too hard about
     // this. It's safe (though less performant) to always return true.
     virtual bool there_were_tasks() const = 0;
 

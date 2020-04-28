@@ -147,6 +147,8 @@ class Runtime : public Thread {
     void retarget(const std::string& s);
     // Schedules a $save() at the end of this step and returns immediately.
     void save(const std::string& path);
+    // Yields control back to the runtime for performing volatile operations.
+    void yield();
 
     // Stream I/O Interface:
     //

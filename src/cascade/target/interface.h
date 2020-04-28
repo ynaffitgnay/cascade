@@ -56,6 +56,7 @@ class Interface {
     virtual void restart(const std::string& path) = 0;
     virtual void retarget(const std::string& s) = 0;
     virtual void save(const std::string& path) = 0;
+    virtual void yield() = 0;
 
     // These methods must perform whatever target-specific logic is necessary
     // to invoke the corresponding stream calls on the runtime.

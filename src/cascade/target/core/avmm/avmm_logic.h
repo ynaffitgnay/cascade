@@ -576,6 +576,12 @@ inline bool AvmmLogic<V,A,T>::handle_tasks() {
       there_were_tasks_ = true;
       break;
     }
+    case Node::Tag::yield_statement: {
+      const auto* ss = static_cast<const YieldStatement*>(task);
+      interface()->yield();
+      there_were_tasks_ = true;
+      break;
+    }
     default:
       assert(false);
       break;

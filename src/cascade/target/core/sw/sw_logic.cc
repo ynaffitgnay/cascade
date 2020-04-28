@@ -478,6 +478,13 @@ void SwLogic::visit(const SaveStatement* ss) {
   }
 }
 
+void SwLogic::visit(const YieldStatement* ys) {
+  if (!silent_) {
+    interface()->yield();
+    there_were_tasks_ = true;
+  }
+}
+
 void SwLogic::log(const string& op, const Node* n) {
   cout << "[" << src_->get_id() << "] " << op << " " << n << endl;
 }

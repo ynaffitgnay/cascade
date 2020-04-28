@@ -123,6 +123,7 @@ class SwLogic : public Logic, public Visitor {
     void visit(const RestartStatement* rs) override;
     void visit(const RetargetStatement* rs) override;
     void visit(const SaveStatement* ss) override;
+    void visit(const YieldStatement* ys) override;
 
     // Debug Printing:
     void log(const std::string& op, const Node* n);

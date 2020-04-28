@@ -435,6 +435,10 @@ void Runtime::save(const string& path) {
   });
 }
 
+void Runtime::yield() {
+  cout << "YIELD!" << endl;
+}
+
 FId Runtime::rdbuf(streambuf* sb) {
   streambufs_.push_back(make_pair(sb, false));
   return streambufs_.size()-1;
