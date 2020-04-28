@@ -90,8 +90,10 @@ SwLogic& SwLogic::set_input(const Identifier* id, VId vid) {
   return *this;
 }
 
-SwLogic& SwLogic::set_state(const Identifier* id, VId vid) {
-  state_.insert(make_pair(vid, id));
+SwLogic& SwLogic::set_state(bool is_volatile, const Identifier* id, VId vid) {
+  if (!is_volatile) {
+    state_.insert(make_pair(vid, id));
+  }
   return *this;
 }
 

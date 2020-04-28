@@ -53,7 +53,7 @@ class SwLogic : public Logic, public Visitor {
 
     // Configuration Logic:
     SwLogic& set_input(const Identifier* id, VId vid);
-    SwLogic& set_state(const Identifier* id, VId vid);
+    SwLogic& set_state(bool is_volatile, const Identifier* id, VId vid);
     SwLogic& set_output(const Identifier* id, VId vid);
 
     // Core Interface:

@@ -62,7 +62,7 @@ class AvmmLogic : public Logic {
 
     // Configuration Methods:
     AvmmLogic& set_input(const Identifier* id, VId vid);
-    AvmmLogic& set_state(const Identifier* id, VId vid);
+    AvmmLogic& set_state(bool is_volatile, const Identifier* id, VId vid);
     AvmmLogic& set_output(const Identifier* id, VId vid);
     AvmmLogic& index_tasks();
     AvmmLogic& set_callback(Callback cb);
@@ -134,6 +134,7 @@ class AvmmLogic : public Logic {
         void visit(const RestartStatement* rs) override;
         void visit(const RetargetStatement* rs) override;
         void visit(const SaveStatement* ss) override;
+        void visit(const YieldStatement* ys) override;
     };
 
     // Synchronizes the locations in the variable table which correspond to the
@@ -186,11 +187,16 @@ inline AvmmLogic<V,A,T>& AvmmLogic<V,A,T>::set_input(const Identifier* id, VId v
 }
 
 template <size_t V, typename A, typename T>
-inline AvmmLogic<V,A,T>& AvmmLogic<V,A,T>::set_state(const Identifier* id, VId vid) {
+inline AvmmLogic<V,A,T>& AvmmLogic<V,A,T>::set_state(bool is_volatile, const Identifier* id, VId vid) {
+  // NOTE: Volatile variables still need to be placed in the variable table.
+  // This is how an AvmmCore keeps track of variables that are sensitive to
+  // non-blocking updates.
   if (table_.find(id) == table_.end()) {
     table_.insert(id);
   }   
-  state_.insert(std::make_pair(vid, id));
+  if (!is_volatile) {
+    state_.insert(std::make_pair(vid, id));
+  }
   return *this;
 }
 
@@ -682,6 +688,11 @@ inline void AvmmLogic<V,A,T>::Inserter::visit(const SaveStatement* ss) {
   in_args_ = true;
   ss->accept_arg(this);
   in_args_ = false;
+}
+
+template <size_t V, typename A, typename T>
+inline void AvmmLogic<V,A,T>::Inserter::visit(const YieldStatement* ys) {
+  av_->tasks_.push_back(ys);
 }
 
 template <size_t V, typename A, typename T>
