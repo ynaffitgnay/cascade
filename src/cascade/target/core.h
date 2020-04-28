@@ -47,15 +47,18 @@ class Core {
     explicit Core(Interface* interface);
     virtual ~Core() = default;
 
-    // This method must return the values of all stateful elements contained in
-    // this module. It is called at most once before this core is torn down.
+    // This method must return the values of all non-volatile stateful elements
+    // contained in this module.  It may optionally return the values of
+    // volatile elements. It may be called multiple times before this core is
+    // torn down.
     virtual State* get_state() = 0;
-    // This method must update the value of any stateful elements contained in
-    // this module. It is called exactly once before finalize(), and may be
-    // called multiple times thereafter.
+    // This method must update the value of any non-volatile stateful elements
+    // contained in this module. It may ignore values for volatile elements. It
+    // is called exactly once before finalize(), and may be called multiple
+    // times thereafter.
     virtual void set_state(const State* s) = 0;
     // This method must return the values of all inputs connected to this
-    // module. It is called at most once before this core is torn down.
+    // module. It may be called multiple times before this core is torn down.
     virtual Input* get_input() = 0;
     // This method must update the value of an input connected to this module.
     // It is called exactly once before finalize(), and may be called multiple

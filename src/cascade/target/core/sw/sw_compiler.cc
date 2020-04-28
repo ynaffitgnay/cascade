@@ -120,7 +120,9 @@ SwLogic* SwCompiler::compile_logic(Engine::Id id, ModuleDeclaration* md, Interfa
     c->set_input(i, to_vid(i));
   }
   for (auto* s : info.stateful()) { 
-    c->set_state(s, to_vid(s));
+    if (!info.is_volatile(s)) {
+      c->set_state(s, to_vid(s));
+    }
   }
   for (auto* o : info.outputs()) {
     c->set_output(o, to_vid(o));

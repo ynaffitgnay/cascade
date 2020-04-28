@@ -436,7 +436,7 @@ void Runtime::save(const string& path) {
 }
 
 void Runtime::yield() {
-  cout << "YIELD!" << endl;
+  // TODO: IMPLEMENT ME!!!
 }
 
 FId Runtime::rdbuf(streambuf* sb) {

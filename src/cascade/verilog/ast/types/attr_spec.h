@@ -31,6 +31,7 @@
 #ifndef CASCADE_SRC_VERILOG_AST_ATTR_SPEC_H
 #define CASCADE_SRC_VERILOG_AST_ATTR_SPEC_H
 
+#include <string>
 #include "verilog/ast/types/identifier.h"
 #include "verilog/ast/types/expression.h"
 #include "verilog/ast/types/macro.h"
@@ -43,6 +44,7 @@ class AttrSpec : public Node {
     // Constructors:
     AttrSpec(Identifier* lhs__);
     AttrSpec(Identifier* lhs__, Expression* rhs__);
+    AttrSpec(const std::string& lhs__);
     ~AttrSpec() override;
 
     // Node Interface:
@@ -57,6 +59,8 @@ class AttrSpec : public Node {
     PTR_ATTR(Identifier, lhs);
     MAYBE_ATTR(Expression, rhs);
 };
+
+inline AttrSpec::AttrSpec(const std::string& lhs__) : AttrSpec(new Identifier(lhs__)) { }
 
 inline AttrSpec::AttrSpec(Identifier* lhs__) : Node(Node::Tag::attr_spec) { 
   PTR_SETUP(lhs);

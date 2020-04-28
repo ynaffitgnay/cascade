@@ -72,9 +72,8 @@ MId Isolate::isolate(const ModuleInstantiation* mi) {
 }
 
 Attributes* Isolate::build(const Attributes* as) {
-  // Ignore attributes
-  (void) as;
-  return new Attributes();
+  // Ignore attributes that aren't required by back-end passes
+  return as->find("non_volatile") ? new Attributes("non_volatile") : new Attributes();
 }
 
 Expression* Isolate::build(const Identifier* id) {
@@ -240,13 +239,14 @@ ModuleDeclaration* Isolate::get_shell() {
     const auto write = info.is_write(p.second);
     const auto width = Evaluate().get_width(p.second);
 
-    // If this is an external variable which corresponds to a parameter, and is
-    // read by this module, we can replace it with a localparam. If it's
-    // written, we can ignore it entirely.
     const auto* r = Resolve().get_resolution(p.second); 
     assert(r != nullptr);
     assert(r->get_parent() != nullptr);
     assert(r->get_parent()->is_subclass_of(Node::Tag::declaration));
+
+    // If this is an external variable which corresponds to a parameter, and is
+    // read by this module, we can replace it with a localparam. If it's
+    // written, we can ignore it entirely.
     const auto* decl = static_cast<const Declaration*>(r->get_parent());
     if (decl->is(Node::Tag::localparam_declaration) || decl->is(Node::Tag::parameter_declaration)) {
       if (write) {
@@ -273,17 +273,17 @@ ModuleDeclaration* Isolate::get_shell() {
     // promoted to a register and when should it remain a net? There could be a
     // funny interaction here if a dereference of an external register is
     // promoted to an input.
-
-    const auto is_signed = p.second->get_parent()->is(Node::Tag::reg_declaration) ?
-      static_cast<const RegDeclaration*>(p.second->get_parent())->get_type() :
-      static_cast<const NetDeclaration*>(p.second->get_parent())->get_type();
+    const auto nonvolatile = decl->get_attrs()->find("non_volatile");
+    const auto is_signed = decl->is(Node::Tag::reg_declaration) ?
+      static_cast<const RegDeclaration*>(decl)->get_type() :
+      static_cast<const NetDeclaration*>(decl)->get_type();
 
     auto* pd = new PortDeclaration(
       new Attributes(), 
       (read && write) ? PortDeclaration::Type::INOUT : write ? PortDeclaration::Type::INPUT : PortDeclaration::Type::OUTPUT,
       (info.is_local(p.second) && p.second->get_parent()->is(Node::Tag::reg_declaration)) ? 
         static_cast<Declaration*>(new RegDeclaration(
-          new Attributes(),
+          nonvolatile ? new Attributes("non_volatile") : new Attributes(),
           to_global_id(p.second),
           is_signed,
           (width == 1) ? nullptr : new RangeExpression(width),
