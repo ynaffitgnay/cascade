@@ -529,8 +529,28 @@ inline void Rewrite<M,V,A,T>::emit_var_logic(ModuleDeclaration* res, const Modul
     }
   }
   ib << "end" << std::endl;
-  ib << "if (__read_request && (__vid < " << vt->there_are_updates_index() << "))" << std::endl;
-  ib << "__var[__vid] <= __in;" << std::endl;
+
+  // TODO: There's a non-trivial calculus here which balances which code is
+  // faster in which backend. The single array indexed assign is faster for
+  // avalon and verilator backends, since it's a single statement to simulate.
+  // For hardware backends, the more fan-out we can eliminate the better. For
+  // now we'll just assume that if you used yield(), you want the latter code.
+  ib << "if (__read_request && (__vid < " << vt->there_are_updates_index() << ")) begin" << std::endl;
+  if (!info.uses_yield()) {
+    ib << "__var[__vid] <= __in;" << std::endl;
+  } else for (const auto& v : vars) {
+    const auto itr = v.second;
+    if (!info.is_volatile(itr->first)) {
+      auto idx = itr->second.begin;
+      for (size_t i = 0, ie = itr->second.elements; i < ie; ++i) {
+        for (size_t j = 0, je = itr->second.words_per_element; j < je; ++j, ++idx) {
+          ib << "if (__vid == " << idx << ") __var[" << idx << "] <= __in;" << std::endl;
+        }
+      }
+    }
+  }
+  ib << "end" << std::endl;
+
   ib << "end" << std::endl;
 
   ib << "always @(posedge __clk) begin" << std::endl;
@@ -545,11 +565,15 @@ template <size_t M, size_t V, typename A, typename T>
 inline void Rewrite<M,V,A,T>::emit_output_logic(ModuleDeclaration* res, const ModuleDeclaration* md, const VarTable<V,A,T>* vt) {
   ModuleInfo info(md);      
 
-  // Index the elements in the variable table which aren't inputs or stateful.
+  // Index the elements in the variable table which aren't inputs or stateful
+  // (outputs), and the variables which are.
+  std::map<size_t, typename VarTable<V,A,T>::const_iterator> vars;
   std::map<size_t, typename VarTable<V,A,T>::const_iterator> outputs;
   for (auto t = vt->begin(), te = vt->end(); t != te; ++t) {
     if (!info.is_input(t->first) && !info.is_stateful(t->first)) {
       outputs[t->second.begin] = t;
+    } else {
+      vars[t->second.begin] = t;
     }
   }
 
@@ -577,7 +601,24 @@ inline void Rewrite<M,V,A,T>::emit_output_logic(ModuleDeclaration* res, const Mo
   ib << vt->there_were_tasks_index() << ": __out = __task_id[0];" << std::endl;
   ib << vt->open_loop_index() << ": __out = __open_loop;" << std::endl;
   ib << vt->debug_index() << ": __out = __state[0];" << std::endl;
-  ib << "default: __out = __var[__vid];" << std::endl;
+
+  // TODO: See comments in emit_var_logic for a similar discussion. There's a
+  // non-trivial decision to be made here about what code to generate and when
+  // and where it's faster.
+  if (!info.uses_yield()) {
+    ib << "default: __out = __var[__vid];" << std::endl;
+  } else for (const auto& v : vars) {
+    const auto itr = v.second;
+    if (!info.is_volatile(itr->first)) {
+      auto idx = itr->second.begin;
+      for (size_t i = 0, ie = itr->second.elements; i < ie; ++i) {
+        for (size_t j = 0, je = itr->second.words_per_element; j < je; ++j, ++idx) {
+          ib << idx << ": __out = __var[" << idx << "];" << std::endl;
+        }
+      }
+    }
+  }
+
   ib << "endcase" << std::endl;
   ib << "assign __wait = __read_request || __write_request || __open_loop_tick || __any_triggers || __continue;" << std::endl;
 
