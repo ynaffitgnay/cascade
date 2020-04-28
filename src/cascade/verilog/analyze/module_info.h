@@ -80,6 +80,9 @@ class ModuleInfo : public Visitor {
     // Returns true if this is a local variable declared with type reg which is
     // not an implied wire.
     bool is_stateful(const Identifier* id);
+    // Returns true if this is a stateful element which was declared volatile, or
+    // not-declared non-volatile in a program which uses yield.
+    bool is_volatile(const Identifier* id);
     // Returns true if this is a local variable declared with type reg which is
     // an implied wire.
     bool is_implied_wire(const Identifier* id);
@@ -105,6 +108,9 @@ class ModuleInfo : public Visitor {
     bool uses_mixed_triggers();
     // Returns true if this module is driven by more than one clock.
     bool uses_multiple_clocks();
+    // Returns true if this module (or any module in the program) invokes
+    // the yield system task
+    bool uses_yield();
 
     // Variable Indices:
     //
@@ -187,8 +193,9 @@ class ModuleInfo : public Visitor {
     void visit(const PortDeclaration* pd) override;
     void visit(const BlockingAssign* ba) override;
     void visit(const NonblockingAssign* na) override;
-    void visit(const VariableAssign* va) override;
+    void visit(const YieldStatement* ys) override;
     void visit(const EventControl* ec) override;
+    void visit(const VariableAssign* va) override;
 
     // Cache Maintenance Helpers:
     enum class Type {
