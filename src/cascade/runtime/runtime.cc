@@ -461,7 +461,9 @@ void Runtime::save(const string& path) {
 }
 
 void Runtime::yield() {
-  yield_ = true;
+  schedule_interrupt([this]{
+    yield_ = true;
+  });
 }
 
 FId Runtime::rdbuf(streambuf* sb) {
@@ -802,8 +804,8 @@ void Runtime::drain_volatile_interrupts() {
   // Reset yield flag to default value (true for programs that don't use yield,
   // false for programs that do). Note that when the runtime begins execution,
   // it doesn't have a program yet. In this case we assume yield is true.
-  const auto* root = program_->src();
-  yield_ = (root == nullptr) ? true : !ModuleInfo(root).uses_yield();
+  const auto* src = program_->root_elab()->second;
+  yield_ = (src == nullptr) ? true : !ModuleInfo(src).uses_yield();
 }
 
 void Runtime::open_loop_scheduler() {
