@@ -76,6 +76,7 @@ class TextMangle : public Builder {
     Statement* build(const RestartStatement* rs) override;
     Statement* build(const RetargetStatement* rs) override;
     Statement* build(const SaveStatement* ss) override;
+    Statement* build(const YieldStatement* ys) override;
 
     Expression* get_table_range(const Identifier* r, const Identifier* i);
 };
@@ -235,6 +236,14 @@ inline Statement* TextMangle<V,A,T>::build(const RetargetStatement* rs) {
 
 template <size_t V, typename A, typename T>
 inline Statement* TextMangle<V,A,T>::build(const SaveStatement* ss) {
+  return new BlockingAssign(
+    new Identifier("__task_id"), 
+    new Number(Bits(std::numeric_limits<T>::digits, task_index_++))
+  );
+}
+
+template <size_t V, typename A, typename T>
+inline Statement* TextMangle<V,A,T>::build(const YieldStatement* ys) {
   return new BlockingAssign(
     new Identifier("__task_id"), 
     new Number(Bits(std::numeric_limits<T>::digits, task_index_++))

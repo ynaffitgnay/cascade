@@ -102,6 +102,7 @@ class Node;
       class RestartStatement;
       class RetargetStatement;
       class SaveStatement;
+      class YieldStatement;
   class TimingControl;
     class EventControl;
   class VariableAssign;

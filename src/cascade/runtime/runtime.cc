@@ -86,6 +86,7 @@ Runtime::Runtime() : Thread() {
   item_evals_ = 0;
 
   schedule_all_ = false;
+  yield_ = true;
   clock_ = nullptr;
   inlined_logic_ = nullptr;
 
@@ -248,28 +249,52 @@ bool Runtime::schedule_interrupt(Interrupt int_, Interrupt alt) {
   return true;
 }
 
+bool Runtime::schedule_volatile_interrupt(Interrupt int_, Interrupt alt) {
+  lock_guard<recursive_mutex> lg(int_lock_);
+  if (finished_) {
+    alt();
+    return false;
+  }
+  volatile_ints_.push_back([this, int_, alt]{
+    if (!finished_) {
+      int_();
+    } else {
+      alt();  
+    }
+  });
+  return true;
+}
+
 void Runtime::schedule_blocking_interrupt(Interrupt int_) {
   unique_lock<mutex> lg(block_lock_);
   if (schedule_interrupt(int_)) {
-    block_cv_.wait(lg);
+    while (!ints_.empty()) {
+      block_cv_.wait(lg);
+    }
   }
 }
 
 void Runtime::schedule_blocking_interrupt(Interrupt int_, Interrupt alt) {
   unique_lock<mutex> lg(block_lock_);
   if (schedule_interrupt(int_, alt)) {
-    block_cv_.wait(lg);
+    while (!ints_.empty()) {
+      block_cv_.wait(lg);
+    }
+  }
+}
+
+void Runtime::schedule_blocking_volatile_interrupt(Interrupt int_, Interrupt alt) {
+  unique_lock<mutex> lg(block_lock_);
+  if (schedule_volatile_interrupt(int_, alt)) {
+    while (!volatile_ints_.empty()) {
+      block_cv_.wait(lg);
+    }
   }
 }
 
 void Runtime::schedule_state_safe_interrupt(Interrupt int__) {
-  schedule_blocking_interrupt(
+  schedule_blocking_volatile_interrupt(
     [this, int__]{
-      // As with retarget(), invoking this method in a state where item_evals_ >
-      // 0 can be problematic. This condition guarantees safety.
-      if (item_evals_ > 0) {
-        return schedule_state_safe_interrupt(int__);
-      }
       stringstream ss;
       root_->save(ss);
       int__();
@@ -432,6 +457,12 @@ void Runtime::save(const string& path) {
     }
     ofstream ofs(path);
     root_->save(ofs);
+  });
+}
+
+void Runtime::yield() {
+  schedule_interrupt([this]{
+    yield_ = true;
   });
 }
 
@@ -752,6 +783,31 @@ void Runtime::drain_interrupts() {
   block_cv_.notify_all();
 }
 
+void Runtime::drain_volatile_interrupts() {
+  lock_guard<recursive_mutex> lg(int_lock_);
+
+  // Fast Path: This isn't a yield window.
+  if (!yield_) {
+    return;
+  }
+
+  // Slow Path: Empty the queue. We don't have to worry about eval's in this
+  // queue, so there's no reason to schedule a call to resync().
+  if (!volatile_ints_.empty()) {
+    for (size_t i = 0; i < volatile_ints_.size(); ++i) {
+      volatile_ints_[i]();
+    }
+    volatile_ints_.clear();
+    block_cv_.notify_all();
+  }
+
+  // Reset yield flag to default value (true for programs that don't use yield,
+  // false for programs that do). Note that when the runtime begins execution,
+  // it doesn't have a program yet. In this case we assume yield is true.
+  const auto* src = program_->src();
+  yield_ = (src == nullptr) ? true : !ModuleInfo(src).uses_yield();
+}
+
 void Runtime::open_loop_scheduler() {
   // Record the current time, go open loop, and then record how long we were
   // gone for.  
@@ -767,6 +823,7 @@ void Runtime::open_loop_scheduler() {
   }
   // Drain the interrupt queue and fix up the logical time
   drain_interrupts();
+  drain_volatile_interrupts();
   logical_time_ += itrs;
 
   // Update open loop iterations based on our target
@@ -786,6 +843,7 @@ void Runtime::reference_scheduler() {
   }
   done_step();
   drain_interrupts();
+  drain_volatile_interrupts();
   ++logical_time_;
 }
 
@@ -964,6 +1022,7 @@ void Runtime::showvars(const Identifier* id) {
   os << (info.is_input(id) ? "input " : "");
   os << (info.is_output(id) ? "output " : "");
   os << (info.is_stateful(id) ? "stateful " : "");
+  os << (info.is_volatile(id) ? "volatile " : "");
   os << (info.is_implied_wire(id) ? "implied wire " : "");
   os << (info.is_implied_latch(id) ? "implied latch " : "");
   os << (info.is_read(id) ? "externally read " : "");

@@ -71,8 +71,14 @@ void ModuleInfo::invalidate() {
   Vector<const Identifier*>().swap(md_->ordered_ports_);
   ModuleDeclaration::ConnMap().swap(md_->connections_);
   ModuleDeclaration::ChildMap().swap(md_->children_);
+  md_->enclosing_root_ = nullptr;
   md_->uses_mixed_triggers_ = false;
   md_->clocks_ = 0;
+
+  // Note the non-standard behavior. The uses_yield flag can't ever go false
+  // once it's been asserted (cascade doesn't allow you to delete eval'ed
+  // code). This is a placehold for where we *would* reset the flag.
+  // md_->uses_yield_ = false; // ... DONT DO THIS
 }
 
 bool ModuleInfo::is_declaration() {
@@ -109,6 +115,24 @@ bool ModuleInfo::is_stateful(const Identifier* id) {
   refresh();
   const auto* r = Resolve().get_resolution(id);
   return (r == nullptr) ? false : (md_->stateful_.find(r) != md_->stateful_.end());
+
+}
+
+bool ModuleInfo::is_volatile(const Identifier* id) {
+  // Stateless elements cannot be volatile
+  if (!is_stateful(id)) {
+    return false;
+  }
+  // Grab this variable's annotations. If it's stateful, it must be resolvable.
+  const auto* r = Resolve().get_resolution(id);
+  assert(r != nullptr);
+  const auto* attrs = static_cast<const Declaration*>(r->get_parent())->get_attrs();
+  // If this program uses yield, we're volatile by default, otherwise not
+  if (uses_yield()) {
+    return attrs->find("non_volatile") ? false : true;
+  } else {
+    return attrs->find("volatile") ? true : false;
+  }
 }
 
 bool ModuleInfo::is_implied_wire(const Identifier* id) {
@@ -155,6 +179,13 @@ bool ModuleInfo::uses_mixed_triggers() {
 bool ModuleInfo::uses_multiple_clocks() {
   refresh();
   return md_->clocks_ > 1;
+}
+
+bool ModuleInfo::uses_yield() {
+  // Note the non-standard behavior. Every module declaration has a uses_yield
+  // flag, but the only one we use is the one that lives in the root.
+  refresh();
+  return md_->enclosing_root_->uses_yield_;
 }
 
 const unordered_set<const Identifier*>& ModuleInfo::locals() {
@@ -721,11 +752,10 @@ void ModuleInfo::visit(const NonblockingAssign* na) {
   na->accept_rhs(this);
 }
 
-void ModuleInfo::visit(const VariableAssign* va) {
-  lhs_ = true;
-  va->accept_lhs(this);
-  lhs_ = false;
-  va->accept_rhs(this);
+void ModuleInfo::visit(const YieldStatement* ys) {
+  // Note the non-standard behavior for this flag. The appearance of a yield
+  // statement sets the uses_yield flag in the module that encloses this one.
+  md_->enclosing_root_->uses_yield_ = true;
 }
 
 void ModuleInfo::visit(const EventControl* ec) {
@@ -752,11 +782,22 @@ void ModuleInfo::visit(const EventControl* ec) {
   md_->uses_mixed_triggers_ = md_->uses_mixed_triggers_ || (edge && var);
 }
 
+void ModuleInfo::visit(const VariableAssign* va) {
+  lhs_ = true;
+  va->accept_lhs(this);
+  lhs_ = false;
+  va->accept_rhs(this);
+}
+
 void ModuleInfo::refresh() {
   const auto size = md_->size_items();
   if (md_->next_update_ == size) {
     return;
   }
+
+  Node* er = nullptr;
+  for (er = md_; er->get_parent() != nullptr; er = er->get_parent());
+  md_->enclosing_root_ = static_cast<ModuleDeclaration*>(er);
 
   for (; md_->next_update_ < size; ++md_->next_update_) {
     md_->get_items(md_->next_update_)->accept(this);

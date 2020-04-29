@@ -50,6 +50,7 @@ class LocalInterface : public Interface {
     void restart(const std::string& path) override;
     void retarget(const std::string& s) override;
     void save(const std::string& path) override;
+    void yield() override;
 
     FId fopen(const std::string& path, uint8_t mode) override;
     int32_t in_avail(FId id) override;
@@ -96,6 +97,10 @@ inline void LocalInterface::retarget(const std::string& s) {
 
 inline void LocalInterface::save(const std::string& path) {
   rt_->save(path);
+}
+
+inline void LocalInterface::yield() {
+  rt_->yield();
 }
 
 inline FId LocalInterface::fopen(const std::string& path, uint8_t mode) {

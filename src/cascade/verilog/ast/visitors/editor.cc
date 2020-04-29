@@ -311,6 +311,10 @@ void Editor::edit(SaveStatement* ss) {
   ss->accept_arg(this);
 }
 
+void Editor::edit(YieldStatement* ys) {
+  // Does nothing.
+}
+
 void Editor::edit(WhileStatement* ws) {
   ws->accept_cond(this);
   ws->accept_stmt(this); 

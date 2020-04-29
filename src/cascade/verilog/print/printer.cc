@@ -687,6 +687,12 @@ void Printer::visit(const SaveStatement* ss) {
   *this << Color::RED << ");" << Color::RESET;
 }
 
+void Printer::visit(const YieldStatement* ys) {
+  *this << Color::YELLOW << "$yield" << Color::RESET;
+  *this << Color::RED << "(" << Color::RESET;
+  *this << Color::RED << ");" << Color::RESET;
+}
+
 void Printer::visit(const WhileStatement* ws) {
   *this << Color::GREEN << "while " << Color::RESET;
   *this << Color::RED << "(" << Color::RESET;

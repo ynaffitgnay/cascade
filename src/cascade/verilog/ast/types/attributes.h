@@ -45,6 +45,7 @@ class Attributes : public Node {
     // Constructors:
     Attributes();
     explicit Attributes(AttrSpec* as);
+    Attributes(const std::string& as__);
     template <typename AttrItr>
     Attributes(AttrItr as_begin__, AttrItr as_end__);
     ~Attributes() override;
@@ -75,6 +76,10 @@ inline Attributes::Attributes() : Node(Node::Tag::attributes) {
 
 inline Attributes::Attributes(AttrSpec* as) : Attributes() {
   push_back_as(as);
+}
+
+inline Attributes::Attributes(const std::string& as__) : Attributes() {
+  push_back_as(new AttrSpec(as__));
 }
 
 template <typename AttrItr>

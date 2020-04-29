@@ -76,6 +76,7 @@ struct Rpc : Serializable {
     RESTART,
     RETARGET,
     SAVE,
+    YIELD,
 
     FOPEN,
     IN_AVAIL,

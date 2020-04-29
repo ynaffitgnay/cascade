@@ -115,18 +115,25 @@ class Runtime : public Thread {
     // Identical to the single argument form, but alt is executed instead of
     // int_ if the call to int_ fizzles.
     bool schedule_interrupt(Interrupt int_, Interrupt alt);
+    // Identical to schedule_interrupt, but schedules interrupts on the
+    // volatile queue, which is only drained after the normal queue is drained
+    // on a clock tick in which yield is asserted.
+    bool schedule_volatile_interrupt(Interrupt int_, Interrupt alt);
     // Identical to the single argument form, but blocks until the interrupt
     // completes execution or fizzles.
     void schedule_blocking_interrupt(Interrupt int_);
     // Identical to the two argument form, but blocks until the interrupt
     // completes execution or alt is executed in its place.
     void schedule_blocking_interrupt(Interrupt int_, Interrupt alt);
-    // Schedules an interrupt either between a call to save and restart if the
-    // simulation is currently active, or immediately if a call to finish
-    // already took place. This method blocks until completion.
+    // Identical to schedule_blocking_interrupt, but schedules interrupts 
+    // on the volatile queue.
+    void schedule_blocking_volatile_interrupt(Interrupt int_, Interrupt alt);
+    // Schedules a volatile interrupt either between a call to save and restart
+    // if the simulation is currently active, or immediately if a call to
+    // finish already took place. This method blocks until completion.
     void schedule_state_safe_interrupt(Interrupt int__);
     // Schedules an asynchronous task. Asynchronous tasks begin execution out
-    // of phase with the logic time and may begin and end mid-step. If an
+    // of phase with the logical time and may begin and end mid-step. If an
     // asynchronous task invokes any of the schedule_xxx_interrupt methods, it
     // must use the two-argument form.
     void schedule_asynchronous(Asynchronous async);
@@ -147,6 +154,8 @@ class Runtime : public Thread {
     void retarget(const std::string& s);
     // Schedules a $save() at the end of this step and returns immediately.
     void save(const std::string& path);
+    // Yields control back to the runtime for performing volatile operations.
+    void yield();
 
     // Stream I/O Interface:
     //
@@ -198,6 +207,7 @@ class Runtime : public Thread {
     bool finished_;
     size_t item_evals_;
     std::vector<Interrupt> ints_;
+    std::vector<Interrupt> volatile_ints_;
     std::recursive_mutex int_lock_;
     std::mutex block_lock_;
     std::condition_variable block_cv_;
@@ -206,6 +216,7 @@ class Runtime : public Thread {
     std::vector<Module*> logic_;
     std::vector<Module*> done_logic_;
     bool schedule_all_;
+    bool yield_;
 
     // Optimized Scheduling State:
     Module* clock_;
@@ -261,6 +272,8 @@ class Runtime : public Thread {
     void done_simulation();
     // Drains the interrupt queue
     void drain_interrupts();
+    // Drains the volatile interrupt queue
+    void drain_volatile_interrupts();
 
     // Runs in open loop until timeout or a system task is triggered
     void open_loop_scheduler();

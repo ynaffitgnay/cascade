@@ -362,6 +362,10 @@ Statement* Rewriter::rewrite(SaveStatement* ss) {
   return ss;
 }
 
+Statement* Rewriter::rewrite(YieldStatement* ys) {
+  return ys;
+}
+
 Statement* Rewriter::rewrite(WhileStatement* ws) {
   ws->accept_cond(this);
   ws->accept_stmt(this);

@@ -206,7 +206,7 @@ inline AvmmLogic<V,A,T>* AvmmCompiler<M,V,A,T>::compile_logic(Engine::Id id, Mod
     ss.insert(std::make_pair(to_vid(s), s));
   }
   for (const auto& s : ss) {
-    al->set_state(s.second, s.first);
+    al->set_state(info.is_volatile(s.second), s.second, s.first);
   }
   std::map<VId, const Identifier*> os;
   for (auto* o : info.outputs()) {

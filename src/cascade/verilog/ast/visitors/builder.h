@@ -98,6 +98,7 @@ struct Builder {
   virtual Statement* build(const RestartStatement* rs);
   virtual Statement* build(const RetargetStatement* rs);
   virtual Statement* build(const SaveStatement* ss);
+  virtual Statement* build(const YieldStatement* ys);
   virtual Statement* build(const WhileStatement* ws);
   virtual TimingControl* build(const EventControl* ec);
   virtual VariableAssign* build(const VariableAssign* va);

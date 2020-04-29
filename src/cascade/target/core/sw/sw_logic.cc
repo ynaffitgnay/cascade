@@ -90,8 +90,10 @@ SwLogic& SwLogic::set_input(const Identifier* id, VId vid) {
   return *this;
 }
 
-SwLogic& SwLogic::set_state(const Identifier* id, VId vid) {
-  state_.insert(make_pair(vid, id));
+SwLogic& SwLogic::set_state(bool is_volatile, const Identifier* id, VId vid) {
+  if (!is_volatile) {
+    state_.insert(make_pair(vid, id));
+  }
   return *this;
 }
 
@@ -474,6 +476,13 @@ void SwLogic::visit(const RetargetStatement* rs) {
 void SwLogic::visit(const SaveStatement* ss) {
   if (!silent_) {
     interface()->save(ss->get_arg()->get_readable_val());
+    there_were_tasks_ = true;
+  }
+}
+
+void SwLogic::visit(const YieldStatement* ys) {
+  if (!silent_) {
+    interface()->yield();
     there_were_tasks_ = true;
   }
 }

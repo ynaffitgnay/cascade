@@ -28,61 +28,38 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef CASCADE_SRC_VERILOG_AST_ATTR_SPEC_H
-#define CASCADE_SRC_VERILOG_AST_ATTR_SPEC_H
+#ifndef CASCADE_SRC_VERILOG_AST_YIELD_STATEMENT_H
+#define CASCADE_SRC_VERILOG_AST_YIELD_STATEMENT_H
 
-#include <string>
-#include "verilog/ast/types/identifier.h"
-#include "verilog/ast/types/expression.h"
 #include "verilog/ast/types/macro.h"
-#include "verilog/ast/types/node.h"
+#include "verilog/ast/types/system_task_enable_statement.h"
 
 namespace cascade {
 
-class AttrSpec : public Node {
+class YieldStatement : public SystemTaskEnableStatement {
   public:
     // Constructors:
-    AttrSpec(Identifier* lhs__);
-    AttrSpec(Identifier* lhs__, Expression* rhs__);
-    AttrSpec(const std::string& lhs__);
-    ~AttrSpec() override;
+    explicit YieldStatement();
+    ~YieldStatement() override;
 
     // Node Interface:
-    NODE(AttrSpec)
-    AttrSpec* clone() const override;
-
-    // Get/Set:
-    PTR_GET_SET(AttrSpec, Identifier, lhs)
-    MAYBE_GET_SET(AttrSpec, Expression, rhs)
-
-  private:
-    PTR_ATTR(Identifier, lhs);
-    MAYBE_ATTR(Expression, rhs);
+    NODE(YieldStatement)
+    YieldStatement* clone() const override;
 };
 
-inline AttrSpec::AttrSpec(const std::string& lhs__) : AttrSpec(new Identifier(lhs__)) { }
-
-inline AttrSpec::AttrSpec(Identifier* lhs__) : Node(Node::Tag::attr_spec) { 
-  PTR_SETUP(lhs);
-  MAYBE_DEFAULT_SETUP(rhs);
+inline YieldStatement::YieldStatement() : SystemTaskEnableStatement(Node::Tag::yield_statement) {
   parent_ = nullptr;
 }
 
-inline AttrSpec::AttrSpec(Identifier* lhs__, Expression* rhs__) : AttrSpec(lhs__) { 
-  MAYBE_SETUP(rhs);
+inline YieldStatement::~YieldStatement() {
+  // Does nothing
 }
 
-inline AttrSpec::~AttrSpec() {
-  PTR_TEARDOWN(lhs);
-  MAYBE_TEARDOWN(rhs);
+inline YieldStatement* YieldStatement::clone() const {
+  return new YieldStatement();
 }
 
-inline AttrSpec* AttrSpec::clone() const {
-  auto* res = new AttrSpec(lhs_->clone());
-  MAYBE_CLONE(rhs);
-  return res;
-}
-
-} // namespace cascade
+} // namespace cascade 
 
 #endif
+
