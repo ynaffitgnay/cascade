@@ -804,7 +804,7 @@ void Runtime::drain_volatile_interrupts() {
   // Reset yield flag to default value (true for programs that don't use yield,
   // false for programs that do). Note that when the runtime begins execution,
   // it doesn't have a program yet. In this case we assume yield is true.
-  const auto* src = program_->root_elab()->second;
+  const auto* src = program_->src();
   yield_ = (src == nullptr) ? true : !ModuleInfo(src).uses_yield();
 }
 
