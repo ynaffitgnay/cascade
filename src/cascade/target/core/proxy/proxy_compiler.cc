@@ -142,6 +142,13 @@ void ProxyCompiler::stop_compile(Engine::Id id) {
 }
 
 bool ProxyCompiler::open(const string& loc) {
+  // Even if every instance of cascade has exactly one proxy compiler, we still
+  // need to guard this method with a lock. Consider the race condition where a
+  // proxy compiler is used for the first-pass compilation of root, pad, led,
+  // etc...  at the same time as an asynchronous second-pass compilation is
+  // kicked off for root.
+  lock_guard<mutex> lg(lock_);
+
   // Nothing to do if we already have a connection to this location
   if (conns_.find(loc) != conns_.end()) {
     return true;
