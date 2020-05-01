@@ -308,9 +308,11 @@ void RemoteCompiler::compile(sockstream* sock, const Rpc& rpc) {
     if (rpc.eid_ >= engine_index_[rpc.pid_].size()) {
       engine_index_[rpc.pid_].resize(rpc.eid_+1, -1);
     }
-    engine_index_[rpc.pid_][rpc.eid_] = engines_.size();
+    if (engine_index_[rpc.pid_][rpc.eid_] == -1) {
+      engine_index_[rpc.pid_][rpc.eid_] = engines_.size();
+      engines_.resize(engines_.size()+1);
+    }
     eid = engine_index_[rpc.pid_][rpc.eid_];
-    engines_.resize(engines_.size()+1);
   }
 
   // Now create a new thread to compile the code, enter it into the
@@ -325,10 +327,12 @@ void RemoteCompiler::compile(sockstream* sock, const Rpc& rpc) {
     if (e != nullptr) {
       { lock_guard<mutex> lg(elock_);
         engines_[eid].push_back(e);
+        cout << "DONE COMPILING: " << rpc.pid_ << " " << rpc.eid_ << " " << eid << " " << engines_[eid].size()-1 << endl;
         Rpc(Rpc::Type::OKAY, rpc.pid_, rpc.eid_, engines_[eid].size()-1).serialize(*sock);
       }
       sock->flush();
     } else {
+      cout << "FAILED COMPILING: " << rpc.pid_ << " " << rpc.eid_ << endl;
       Rpc(Rpc::Type::FAIL).serialize(*sock);
       sock->flush();
     }
