@@ -31,6 +31,7 @@
 #ifndef CASCADE_SRC_TARGET_CORE_PROXY_PROXY_COMPILER_H
 #define CASCADE_SRC_TARGET_CORE_PROXY_PROXY_COMPILER_H
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include "common/sockstream.h"
@@ -57,6 +58,7 @@ class ProxyCompiler : public CoreCompiler {
       sockstream* sync_sock;
     };
     std::unordered_map<std::string, ConnInfo> conns_;
+    std::mutex lock_;
 
     // Asynchronous Control for State-Safe Requests:
     ThreadPool pool_;

@@ -360,12 +360,9 @@ void Runtime::finish(uint32_t arg) {
 }
 
 void Runtime::restart(const string& path) {
-  schedule_interrupt([this, path]{
-    // As with retarget(), invoking this method in a state where item_evals_ >
-    // 0 can be problematic. This condition guarantees safety.
-    if (item_evals_ > 0) {
-      return restart(path);
-    }
+  // Scheduling this method as a volatile interrupt guarantees that its run in a state
+  // where the program is in a consistent state and there are no outstanding evals.
+  schedule_volatile_interrupt([this, path]{
     ifstream ifs(path);
     if (!ifs.is_open()) {
       ostream(rdbuf(stderr_)) << "Unable to open save file '" << path << "'\"!" << endl;
@@ -373,19 +370,16 @@ void Runtime::restart(const string& path) {
       return;
     }
     root_->restart(ifs);
+  },
+  []{
+    // Do nothing.
   });
 }   
 
 void Runtime::retarget(const string& s) {
-  schedule_interrupt([this, s]{
-    // An unfortunate corner case: Have some evals been processed by the
-    // interrupt queue? Remember that Module::rebuild() can only be invoked in
-    // a state where there are no unhandled evals. Fortunately, there's an easy
-    // fix: just reinvoke retarget().  This will reschedule us on the far side
-    // of Runtime::resync() and it'll be safe to invoke Module::rebuild().
-    if (item_evals_ > 0) {
-      return retarget(s);
-    }
+  // Scheduling this method as a volatile interrupt guarantees that its run in a state
+  // where the program is in a consistent state and there are no outstanding evals.
+  schedule_volatile_interrupt([this, s]{
     // Give up if we can't open the march file which was requested
     ifstream ifs(System::src_root() + "share/cascade/march/" + s + ".v");
     if (!ifs.is_open()) {
@@ -445,19 +439,20 @@ void Runtime::retarget(const string& s) {
     delete march;
     delete backup_root;
     root_->rebuild();
+  },
+  []{
+    // Does nothing. 
   });
 }
 
 void Runtime::save(const string& path) {
-  schedule_interrupt([this, path]{
-    // As with retarget(), invoking this method in a state where item_evals_ >
-    // 0 can be problematic. This condition guarantees safety.
-    if (item_evals_ > 0) {
-      return save(path);
-    }
+  // Scheduling this method as a volatile interrupt guarantees that its run in a state
+  // where the program is in a consistent state and there are no outstanding evals.
+  auto lambda = [this, path] {
     ofstream ofs(path);
     root_->save(ofs);
-  });
+  };
+  schedule_volatile_interrupt(lambda, lambda);
 }
 
 void Runtime::yield() {
@@ -672,15 +667,10 @@ bool Runtime::eval_item(ModuleItem* mi) {
 }
 
 void Runtime::resync() {
-  // If nothing has been evaled since the last call, we don't have to worry
-  // about recompilation. We might be here because of a jit handoff, in which
-  // case we need to check for compiler errors.
+  // Fast Path: Nothing to do if we haven't eval'ed anything
   if (item_evals_ == 0) {
-    if (compiler_->error()) {
-      log_compiler_errors();
-    } 
     return;
-  } 
+  }
 
   // Inline as much as we can and compile whatever is new. Reset the
   // item_evals_ counter as soon as we're done.
@@ -769,13 +759,7 @@ void Runtime::drain_interrupts() {
   if (ints_.empty()) {
     return;
   }
-
-  // Slow Path: 
-  // We have at least one interrupt, which could be an eval event or a jit
-  // handoff.  Schedule an interrupt at the end of the queue to handle these.
-  schedule_interrupt([this]{
-    resync();
-  });
+  // Slow Path: Empty the queue
   for (size_t i = 0; i < ints_.size(); ++i) {
     ints_[i]();
   }
@@ -790,9 +774,7 @@ void Runtime::drain_volatile_interrupts() {
   if (!yield_) {
     return;
   }
-
-  // Slow Path: Empty the queue. We don't have to worry about eval's in this
-  // queue, so there's no reason to schedule a call to resync().
+  // Slow Path: Empty the queue. 
   if (!volatile_ints_.empty()) {
     for (size_t i = 0; i < volatile_ints_.size(); ++i) {
       volatile_ints_[i]();
@@ -800,6 +782,10 @@ void Runtime::drain_volatile_interrupts() {
     volatile_ints_.clear();
     block_cv_.notify_all();
   }
+  // Check for compiler errors from jit-handoff
+  if (compiler_->error()) {
+    log_compiler_errors();
+  } 
 
   // Reset yield flag to default value (true for programs that don't use yield,
   // false for programs that do). Note that when the runtime begins execution,
@@ -823,6 +809,7 @@ void Runtime::open_loop_scheduler() {
   }
   // Drain the interrupt queue and fix up the logical time
   drain_interrupts();
+  resync();
   drain_volatile_interrupts();
   logical_time_ += itrs;
 
@@ -843,6 +830,7 @@ void Runtime::reference_scheduler() {
   }
   done_step();
   drain_interrupts();
+  resync();
   drain_volatile_interrupts();
   ++logical_time_;
 }

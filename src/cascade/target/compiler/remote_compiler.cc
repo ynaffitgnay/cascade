@@ -308,9 +308,11 @@ void RemoteCompiler::compile(sockstream* sock, const Rpc& rpc) {
     if (rpc.eid_ >= engine_index_[rpc.pid_].size()) {
       engine_index_[rpc.pid_].resize(rpc.eid_+1, -1);
     }
-    engine_index_[rpc.pid_][rpc.eid_] = engines_.size();
+    if (engine_index_[rpc.pid_][rpc.eid_] == -1) {
+      engine_index_[rpc.pid_][rpc.eid_] = engines_.size();
+      engines_.resize(engines_.size()+1);
+    }
     eid = engine_index_[rpc.pid_][rpc.eid_];
-    engines_.resize(engines_.size()+1);
   }
 
   // Now create a new thread to compile the code, enter it into the
