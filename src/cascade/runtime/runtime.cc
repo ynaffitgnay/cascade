@@ -107,11 +107,10 @@ Runtime::~Runtime() {
   stop_now();
   if (!finished_) {
     ostream(rdbuf(stdinfo_)) << "Simulation is still active... issuing $finish() request" << endl;
-    finish(0);
     run();
+    schedule_blocking_interrupt([this]{finish(0);});
     stop_now();
   }
-  ostream(rdbuf(stdinfo_)) << "Confirmed simulation is in finished state" << endl;
 
   // INVARIANT: At this point we know that the interrupt queue is empty and no
   // new asyncrhonous threads have been started (the only place this happens is
@@ -133,7 +132,6 @@ Runtime::~Runtime() {
   // runtime.
   
   ostream(rdbuf(stdinfo_)) << "Tearing down program... "; ostream(rdbuf(stdinfo_)).flush();
-  cout << program_->src() << endl;
   delete program_;
   ostream(rdbuf(stdinfo_)) << "OK" << endl;
 
