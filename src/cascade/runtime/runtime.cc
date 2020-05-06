@@ -106,10 +106,12 @@ Runtime::~Runtime() {
 
   stop_now();
   if (!finished_) {
+    ostream(rdbuf(stdinfo_)) << "Simulation is still active... issuing $finish() request" << endl;
     finish(0);
     run();
     stop_now();
   }
+  ostream(rdbuf(stdinfo_)) << "Confirmed simulation is in finished state" << endl;
 
   // INVARIANT: At this point we know that the interrupt queue is empty and no
   // new asyncrhonous threads have been started (the only place this happens is
@@ -117,18 +119,28 @@ Runtime::~Runtime() {
   // return. When that's done, stop any asynchronous jobs associated with
   // compilers.
 
+  ostream(rdbuf(stdinfo_)) << "Requesting stop for all outstanding compilation jobs... "; ostream(rdbuf(stdinfo_)).flush();
   compiler_->stop_compile();
   pool_.stop_now();
+  ostream(rdbuf(stdinfo_)) << "OK" << endl;
+  ostream(rdbuf(stdinfo_)) << "Requesting stop for all asynchronous compilation tasks... "; ostream(rdbuf(stdinfo_)).flush();
   compiler_->stop_async();
+  ostream(rdbuf(stdinfo_)) << "OK" << endl;
 
   // INVARIANT: All outstanding asynchronous threads have finished executing,
   // and any interrupts scheduled by those threads have either fizzled or had
   // their alternate callbacks executed. It's now safe to tear down the
   // runtime.
   
+  ostream(rdbuf(stdinfo_)) << "Tearing down program... "; ostream(rdbuf(stdinfo_)).flush();
+  cout << program_->src() << endl;
   delete program_;
+  ostream(rdbuf(stdinfo_)) << "OK" << endl;
+
   if (root_ != nullptr) {
+    ostream(rdbuf(stdinfo_)) << "Tearing module hierarchy... "; ostream(rdbuf(stdinfo_)).flush();
     delete root_;
+    ostream(rdbuf(stdinfo_)) << "OK" << endl;
   }
 
   delete log_;
@@ -357,6 +369,7 @@ void Runtime::finish(uint32_t arg) {
   } 
   request_stop();
   finished_ = true;
+  yield_ = true;
 }
 
 void Runtime::restart(const string& path) {

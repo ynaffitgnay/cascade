@@ -62,6 +62,7 @@ class Id : public Node {
     void assign_sid(const std::string& sid);
 
     // Comparison Operators:
+    bool eq(const Id* rhs) const;
     bool eq(const std::string& rhs) const;
     bool eq(const String* rhs) const;
 
@@ -109,6 +110,10 @@ inline void Id::set_sid(const std::string& sid) {
 
 inline void Id::assign_sid(const std::string& sid) {
   sid_ = Tokenize().map(sid);
+}
+
+inline bool Id::eq(const Id* rhs) const {
+  return is_null_isel() && rhs->is_null_isel() && (sid_ == rhs->sid_);
 }
 
 inline bool Id::eq(const std::string& rhs) const {

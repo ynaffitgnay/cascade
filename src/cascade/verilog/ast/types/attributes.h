@@ -32,7 +32,6 @@
 #define CASCADE_SRC_VERILOG_AST_ATTRIBUTES_H
 
 #include <string>
-#include "verilog/analyze/indices.h"
 #include "verilog/ast/types/attr_spec.h"
 #include "verilog/ast/types/macro.h"
 #include "verilog/ast/types/node.h"
@@ -132,7 +131,7 @@ inline void Attributes::set_or_replace(const Attributes* rhs) {
   for (auto i = rhs->begin_as(), ie = rhs->end_as(); i != ie; ++i) {
     auto found = false;
     for (auto j = begin_as(), je = end_as(); j != je; ++j) {
-      if (EqId()((*j)->get_lhs(), (*i)->get_lhs())) {
+      if ((*j)->get_lhs()->eq((*i)->get_lhs())) {
         (*j)->replace_rhs((*i)->clone_rhs());
         found = true;
         break;
@@ -145,18 +144,13 @@ inline void Attributes::set_or_replace(const Attributes* rhs) {
 }
 
 inline void Attributes::set_or_replace(const std::string& s, Expression* e) {
-  AttrSpec* as = nullptr;
   for (auto i = begin_as(), ie = end_as(); i != ie; ++i) {
     if ((*i)->get_lhs()->eq(s)) {
-      as = *i;
-      break;
+      (*i)->replace_rhs(e);      
+      return;
     }
   }
-  if (as == nullptr) {
-    push_back_as(new AttrSpec(new Identifier(s), e));
-  } else {
-    as->replace_rhs(e);
-  }
+  push_back_as(new AttrSpec(new Identifier(s), e));
 }
 
 } // namespace cascade

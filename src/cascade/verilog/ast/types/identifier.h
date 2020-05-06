@@ -69,6 +69,7 @@ class Identifier : public Primary {
     MANY_GET_SET(Identifier, Expression, dim)
 
     // Comparison Operators:
+    bool eq(const Identifier* rhs) const;
     bool eq(const std::string& rhs) const;
     bool eq(const String* rhs) const;
 
@@ -122,6 +123,10 @@ inline Identifier* Identifier::clone() const {
   MANY_CLONE(ids);
   MANY_CLONE(dim);
   return res;
+}
+
+inline bool Identifier::eq(const Identifier* rhs) const {
+  return (size_ids() == 1) && (rhs->size_ids() == 1) && front_ids()->eq(rhs->front_ids());
 }
 
 inline bool Identifier::eq(const std::string& rhs) const {

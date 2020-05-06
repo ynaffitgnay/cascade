@@ -3,7 +3,7 @@
 
 `include "share/cascade/stdlib/stdlib.v"
 
-(*__target="sw;verilator64"*)
+(*__target="sw;sw", __delay=1, __state_safe_int*)
 Root root();
 
 Clock clock();
