@@ -97,14 +97,11 @@ inline Attributes* Attributes::clone() const {
 }
 
 inline void Attributes::erase(const std::string& s) {
-  auto i = begin_as();
-  for (auto ie = end_as(); i != ie; ++i) {
+  for (auto i = begin_as(), ie = end_as(); i != ie; ++i) {
     if ((*i)->get_lhs()->eq(s)) {
-      break;
+      purge_as(i);
+      return;
     }
-  }
-  if (i != end_as()) {
-    purge_as(i);
   }
 }
 
