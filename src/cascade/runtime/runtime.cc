@@ -771,7 +771,7 @@ void Runtime::drain_volatile_interrupts() {
   lock_guard<recursive_mutex> lg(int_lock_);
 
   // Fast Path: This isn't a yield window.
-  if (!yield_) {
+  if (!yield_ && !finished_) {
     return;
   }
   // Slow Path: Empty the queue. 

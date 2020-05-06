@@ -28,14 +28,14 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef CASCADE_SRC_TARGET_CORE_AVMM_AVALON_SYNCBUF_H
-#define CASCADE_SRC_TARGET_CORE_AVMM_AVALON_SYNCBUF_H
+#ifndef CASCADE_SRC_TARGET_CORE_COMMON_SYNCBUF_H
+#define CASCADE_SRC_TARGET_CORE_COMMON_SYNCBUF_H
 
 #include <streambuf>
 #include <mutex>
 #include <condition_variable>
 
-namespace cascade::avmm {
+namespace cascade {
 
 // FIFO with atomic puts and gets Peeking and put-backs are not supported
 
@@ -168,6 +168,6 @@ inline std::streamsize syncbuf::xsgetn(char_type* s, std::streamsize count) {
   return true_count;
 }
 
-} // namespace cascade::avmm
+} // namespace cascade
 
 #endif

@@ -36,9 +36,9 @@
 #include <type_traits>
 #include "include/cascade.h"
 #include "common/system.h"
+#include "target/core/common/syncbuf.h"
 #include "target/core/avmm/avmm_compiler.h"
 #include "target/core/avmm/avalon/avalon_logic.h"
-#include "target/core/avmm/avalon/syncbuf.h"
 #include "target/core/avmm/avmm_compiler.h"
 
 namespace cascade::avmm {

@@ -49,15 +49,19 @@ auto& slave_path = StrArg<string>::create("--slave_path")
   .description("Path to listen for slave_connections on")
   .initial("/tmp/fpga_socket");
 
-__attribute__((unused)) auto& g2 = Group::create("Quartus Server Options");
-auto& quartus_host = StrArg<string>::create("--quartus_host")
+__attribute__((unused)) auto& g2 = Group::create("Compiler Server Options");
+auto& compiler_host = StrArg<string>::create("--compiler_host")
   .usage("<host>")
-  .description("Location of quartus server")
+  .description("Location of quartus / vivado server")
   .initial("localhost");
-auto& quartus_port = StrArg<uint32_t>::create("--quartus_port")
+auto& compiler_port = StrArg<uint32_t>::create("--compiler_port")
   .usage("<port>")
-  .description("Location of quartus server")
+  .description("Location of quartus / vivado server")
   .initial(9900);
+auto& compiler_fpga = StrArg<uint32_t>::create("--compiler_fpga")
+  .usage("<fpga>")
+  .description("Index of target FPGA for deployment")
+  .initial(0);
 
 CascadeSlave slave_;
 
@@ -92,7 +96,8 @@ int main(int argc, char** argv) {
   }
 
   slave_.set_listeners(::slave_path.value(), ::slave_port.value());
-  slave_.set_quartus_server(::quartus_host.value(), ::quartus_port.value());
+  slave_.set_quartus_server(::compiler_host.value(), ::compiler_port.value());
+  slave_.set_vivado_server(::compiler_host.value(), ::compiler_port.value(), ::compiler_fpga.value());
   slave_.run();
   slave_.wait_for_stop();
   cout << "Goodbye!" << endl;

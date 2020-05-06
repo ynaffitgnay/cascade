@@ -34,6 +34,8 @@
 #include "target/compiler.h"
 #include "target/core/avmm/avalon/avalon_compiler.h"
 #include "target/core/avmm/de10/de10_compiler.h"
+#include "target/core/aos/amorphos/amorphos_compiler.h"
+#include "target/core/aos/f1/f1_compiler.h"
 #include "target/core/avmm/ulx3s/ulx3s_compiler.h"
 #include "target/core/avmm/verilator/verilator_compiler.h"
 #include "target/core/sw/sw_compiler.h"
@@ -51,6 +53,8 @@ Cascade::Cascade() : eval_(this), iostream(&sb_), sb_() {
 
   runtime_.get_compiler()->set("avalon32", new avmm::Avalon32Compiler());
   runtime_.get_compiler()->set("de10", new avmm::De10Compiler());
+  runtime_.get_compiler()->set("amorphos", new aos::AmorphosCompiler());
+  runtime_.get_compiler()->set("f1", new aos::F1Compiler());
   runtime_.get_compiler()->set("proxy", new proxy::ProxyCompiler());
   runtime_.get_compiler()->set("sw", new sw::SwCompiler());
   runtime_.get_compiler()->set("ulx3s32", new avmm::Ulx3s32Compiler());
@@ -61,6 +65,7 @@ Cascade::Cascade() : eval_(this), iostream(&sb_), sb_() {
   #endif
 
   set_quartus_server("localhost", 9900);
+  set_vivado_server("localhost", 9900, 0);
 }
 
 Cascade::~Cascade() {
@@ -97,6 +102,16 @@ Cascade& Cascade::set_quartus_server(const string& host, size_t port) {
   assert(dc != nullptr);
   static_cast<avmm::De10Compiler*>(dc)->set_host(host);
   static_cast<avmm::De10Compiler*>(dc)->set_port(port);
+  return *this;
+}
+
+Cascade& Cascade::set_vivado_server(const string& host, size_t port, size_t fpga) {
+  assert(!is_running_);
+  auto* fc = runtime_.get_compiler()->get("f1");
+  assert(fc != nullptr);
+  static_cast<aos::F1Compiler*>(fc)->set_host(host);
+  static_cast<aos::F1Compiler*>(fc)->set_port(port);
+  static_cast<aos::F1Compiler*>(fc)->set_fpga(fpga);
   return *this;
 }
 

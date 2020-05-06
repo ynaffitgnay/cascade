@@ -43,7 +43,7 @@ namespace {
 
 __attribute__((unused)) auto& g1 = Group::create("Cascade Runtime Options");
 auto& march = StrArg<string>::create("--march")
-  .usage("sw|de10|ulx3s")
+  .usage("sw|de10|f1|ulx3s")
   .description("Target architecture")
   .initial("sw");
 auto& fopen_dirs = StrArg<string>::create("-F")
@@ -58,15 +58,19 @@ auto& input_path = StrArg<string>::create("-e")
   .usage("path/to/file.v")
   .description("Read input from file");
 
-__attribute__((unused)) auto& g2 = Group::create("Quartus Server Options");
-auto& quartus_host = StrArg<string>::create("--quartus_host")
+__attribute__((unused)) auto& g2 = Group::create("Compiler Server Options");
+auto& compiler_host = StrArg<string>::create("--compiler_host")
   .usage("<host>")
-  .description("Location of quartus server")
+  .description("Location of quartus / vivado server")
   .initial("localhost");
-auto& quartus_port = StrArg<uint32_t>::create("--quartus_port")
+auto& compiler_port = StrArg<uint32_t>::create("--compiler_port")
   .usage("<port>")
-  .description("Location of quartus server")
+  .description("Location of quartus / vivado server")
   .initial(9900);
+auto& compiler_fpga = StrArg<uint32_t>::create("--compiler_fpga")
+  .usage("<fpga>")
+  .description("Index of target FPGA for deployment")
+  .initial(0);
 
 __attribute__((unused)) auto& g3 = Group::create("Logging Options");
 auto& profile = StrArg<int>::create("--profile")
@@ -201,7 +205,8 @@ int main(int argc, char** argv) {
   ::cascade_->set_include_dirs(::inc_dirs.value());
   ::cascade_->set_enable_inlining(!::disable_inlining.value());
   ::cascade_->set_open_loop_target(::open_loop_target.value());
-  ::cascade_->set_quartus_server(::quartus_host.value(), ::quartus_port.value());
+  ::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
+  ::cascade_->set_vivado_server(::compiler_host.value(), ::compiler_port.value(), ::compiler_fpga.value());
   ::cascade_->set_profile_interval(::profile.value());
 
   // Map standard streams to colored outbufs

@@ -45,10 +45,12 @@ auto& coverage = FlagArg::create("--coverage");
 
 auto& march = StrArg<string>::create("--march")
   .initial("minimal");
-auto& quartus_host = StrArg<string>::create("--quartus_host")
+auto& compiler_host = StrArg<string>::create("--compiler_host")
   .initial("localhost");
-auto& quartus_port = StrArg<uint32_t>::create("--quartus_port")
+auto& compiler_port = StrArg<uint32_t>::create("--compiler_port")
   .initial(9900);
+auto& compiler_fpga = StrArg<uint32_t>::create("--compiler_fpga")
+  .initial(0);
 
 } // namespace
 
@@ -114,7 +116,8 @@ void run_benchmark(const string& path, const string& expected) {
   c.set_fopen_dirs(System::src_root());
   c.set_stdout(sb);
   c.set_stderr(cout.rdbuf());
-  c.set_quartus_server(::quartus_host.value(), ::quartus_port.value());
+  c.set_quartus_server(::compiler_host.value(), ::compiler_port.value());
+  c.set_vivado_server(::compiler_host.value(), ::compiler_port.value(), ::compiler_fpga.value());
   c.run();
 
   c << "`include \"share/cascade/march/" << ::march.value() << ".v\"\n" 

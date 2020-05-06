@@ -31,8 +31,8 @@
 #ifndef CASCADE_SRC_TARGET_CORE_AVMM_AVALON_AVALON_LOGIC_H
 #define CASCADE_SRC_TARGET_CORE_AVMM_AVALON_AVALON_LOGIC_H
 
+#include "target/core/common/syncbuf.h"
 #include "target/core/avmm/avalon/avalon_logic.h"
-#include "target/core/avmm/avalon/syncbuf.h"
 #include "target/core/avmm/avmm_logic.h"
 
 namespace cascade::avmm {

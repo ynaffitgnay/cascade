@@ -32,6 +32,8 @@
 #include "target/compiler.h"
 #include "target/core/avmm/avalon/avalon_compiler.h"
 #include "target/core/avmm/de10/de10_compiler.h"
+#include "target/core/aos/amorphos/amorphos_compiler.h"
+#include "target/core/aos/f1/f1_compiler.h"
 #include "target/core/avmm/ulx3s/ulx3s_compiler.h"
 #include "target/core/avmm/verilator/verilator_compiler.h"
 #include "target/core/sw/sw_compiler.h"
@@ -46,6 +48,8 @@ CascadeSlave::CascadeSlave() {
 
   remote_compiler_.set("avalon32", new avmm::Avalon32Compiler());
   remote_compiler_.set("de10", new avmm::De10Compiler());
+  remote_compiler_.set("amorphos", new aos::AmorphosCompiler());
+  remote_compiler_.set("f1", new aos::F1Compiler());
   remote_compiler_.set("proxy", new proxy::ProxyCompiler());
   remote_compiler_.set("sw", new sw::SwCompiler());
   remote_compiler_.set("ulx3s32", new avmm::Ulx3s32Compiler());
@@ -56,6 +60,7 @@ CascadeSlave::CascadeSlave() {
   #endif
 
   set_quartus_server("localhost", 9900);
+  set_vivado_server("localhost", 9900, 0);
 }
 
 CascadeSlave::~CascadeSlave() {
@@ -73,6 +78,15 @@ CascadeSlave& CascadeSlave::set_quartus_server(const string& host, size_t port) 
   assert(dc != nullptr);
   static_cast<avmm::De10Compiler*>(dc)->set_host(host);
   static_cast<avmm::De10Compiler*>(dc)->set_port(port);
+  return *this;
+}
+
+CascadeSlave& CascadeSlave::set_vivado_server(const string& host, size_t port, size_t fpga) {
+  auto* fc = remote_compiler_.get("f1");
+  assert(fc != nullptr);
+  static_cast<aos::F1Compiler*>(fc)->set_host(host);
+  static_cast<aos::F1Compiler*>(fc)->set_port(port);
+  static_cast<aos::F1Compiler*>(fc)->set_fpga(fpga);
   return *this;
 }
 

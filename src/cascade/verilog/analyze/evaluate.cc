@@ -205,8 +205,8 @@ void Evaluate::assign_array_value(const Identifier* id, const Vector<Bits>& val)
 
   // Perform the assignment. This method is never invoked along the critical
   // path. There's no need to short-circuit after performing an equality check.
-  assert(val.size() == id->bit_val_.size());
-  for (size_t i = 0, ie = id->bit_val_.size(); i < ie; ++i) {
+  assert(val.size() == r->bit_val_.size());
+  for (size_t i = 0, ie = r->bit_val_.size(); i < ie; ++i) {
     const_cast<Identifier*>(r)->bit_val_[i].assign(val[i]);
   }
   flag_changed(r);

@@ -55,6 +55,7 @@ class CascadeSlave {
     // run.  Inoking any of these methods afterwards is undefined.
     CascadeSlave& set_listeners(const std::string& path, size_t port);
     CascadeSlave& set_quartus_server(const std::string& host, size_t port);
+    CascadeSlave& set_vivado_server(const std::string& host, size_t port, size_t fpga);
 
     // Start/Stop Methods:
     CascadeSlave& run();

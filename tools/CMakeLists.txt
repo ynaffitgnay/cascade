@@ -21,3 +21,10 @@ install(TARGETS quartus_server RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin L
 add_executable(sw_fpga sw_fpga.cc)
 target_link_libraries(sw_fpga PRIVATE libcascade ncurses Threads::Threads)
 install(TARGETS sw_fpga RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+add_executable(f1_probe f1_probe.cc)
+target_link_libraries(f1_probe PRIVATE libcascade Threads::Threads)
+
+add_executable(vivado_server vivado_server vivado_server.cc)
+target_link_libraries(vivado_server PRIVATE libcascade Threads::Threads)
+install(TARGETS vivado_server RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
