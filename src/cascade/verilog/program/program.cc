@@ -48,7 +48,6 @@ using namespace std;
 namespace cascade {
 
 Program::Program() : Editor() {
-  root_inst_ = nullptr;
   root_ditr_ = decls_.end();
   root_eitr_ = elabs_.end();
   typecheck(true);
@@ -69,8 +68,8 @@ Program::Program(ModuleDeclaration* md, ModuleInstantiation* mi) : Program() {
 }
 
 Program::~Program() {
-  if (root_inst_ != nullptr) {
-    delete root_inst_;
+  if (root_elab() != elab_end()) {
+    delete root_elab()->second;
   }
 }
 
@@ -139,19 +138,19 @@ bool Program::eval(ModuleItem* mi, Log* log, const Parser* p) {
 }
 
 void Program::inline_all() {
-  if (root_eitr_ != elabs_.end()) {
-    inline_all(root_eitr_->second);
+  if (root_elab() != elabs_.end()) {
+    inline_all(root_elab()->second);
   }
 }
 
 void Program::outline_all() {
-  if (root_eitr_ != elabs_.end()) {
-    outline_all(root_eitr_->second);
+  if (root_elab() != elabs_.end()) {
+    outline_all(root_elab()->second);
   }
 }
 
 const ModuleDeclaration* Program::src() const {
-  return (root_eitr_ == elab_end()) ? nullptr : root_eitr_->second;
+  return (root_elab() == elab_end()) ? nullptr : root_elab()->second;
 }
 
 Program::decl_iterator Program::root_decl() const {
@@ -296,12 +295,11 @@ void Program::eval_root(ModuleItem* mi, Log* log, const Parser* p) {
   }
   elabs_.commit();
 
-  root_inst_ = inst;
   root_eitr_ = elabs_.begin();
 }
 
 void Program::eval_item(ModuleItem* mi, Log* log, const Parser* p) {
-  auto* src = root_eitr_->second;
+  auto* src = root_elab()->second;
   src->push_back_items(mi);
 
   elabs_.checkpoint();
