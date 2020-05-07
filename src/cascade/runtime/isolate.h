@@ -49,7 +49,7 @@ namespace cascade {
 // 3. Declarations are moved to the top-most scope.
 // 4. Generate regions are flattened into their enclosing scope.
 // 5. Generate constructs are flattened into their enclosing scope.
-// 6. Attribute annotations which appear inside the module are removed.
+// 6. Attribute annotations which appear inside the module are removed (except for non-volatile).
 // 7. The 'ignore' oldest initial blocks are deleted.
 // 8. fork/join blocks are replaced by begin/end blocks.
 // 9. debug statements have scopes attached to them.
