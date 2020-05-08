@@ -40,7 +40,7 @@ using namespace cascade;
 using namespace cascade::cl;
 using namespace std;
 
-namespace {
+namespace cascade::cascade_tiff {
 
 //__attribute__((unused)) auto& g1 = Group::create("Cascade Runtime Options");
 //auto& march = StrArg<string>::create("--march")
@@ -162,7 +162,7 @@ namespace {
 
 // Allocate cascade on the heap so we can guarantee that it's torn down before
 // stack or static variables.
-Cascade* cascade_ = nullptr;
+  Cascade* cascade_ = nullptr;
 
 //// Signal Handlers:
 //void int_handler(int sig) {
@@ -199,73 +199,73 @@ int main(int argc, char** argv) {
   //}
 
   // Create a new cascade
-  ::cascade_ = new Cascade();
+  cascade::cascade_tiff::cascade_ = new Cascade();
 
   // Set command line flags
-  //::cascade_->set_fopen_dirs(::fopen_dirs.value());
-  //::cascade_->set_include_dirs(::inc_dirs.value());
-  //::cascade_->set_enable_inlining(!::disable_inlining.value());
-  //::cascade_->set_open_loop_target(::open_loop_target.value());
-  //::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
-  ::cascade_->set_vivado_server("localhost", 9903, 0);
-  ::cascade_->set_profile_interval(1);
-  ::cascade_->set_stdout(std::cout.rdbuf());
-  ::cascade_->set_stderr(std::cout.rdbuf());
-  ::cascade_->set_stdwarn(std::cout.rdbuf());
-  ::cascade_->set_stdinfo(std::cout.rdbuf());
+  //cascade::cascade_tiff::cascade_->set_fopen_dirs(::fopen_dirs.value());
+  //cascade::cascade_tiff::cascade_->set_include_dirs(::inc_dirs.value());
+  //cascade::cascade_tiff::cascade_->set_enable_inlining(!::disable_inlining.value());
+  //cascade::cascade_tiff::cascade_->set_open_loop_target(::open_loop_target.value());
+  //cascade::cascade_tiff::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
+  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9903, 0);
+  cascade::cascade_tiff::cascade_->set_profile_interval(1);
+  cascade::cascade_tiff::cascade_->set_stdout(std::cout.rdbuf());
+  cascade::cascade_tiff::cascade_->set_stderr(std::cout.rdbuf());
+  cascade::cascade_tiff::cascade_->set_stdwarn(std::cout.rdbuf());
+  cascade::cascade_tiff::cascade_->set_stdinfo(std::cout.rdbuf());
   
 
   //// Map standard streams to colored outbufs
   //if (::disable_repl.value()) {
-  //  ::cascade_->set_stdin(cin.rdbuf());
+  //  cascade::cascade_tiff::cascade_->set_stdin(cin.rdbuf());
   //}
-  //::cascade_->set_stdout(new outbuf());
+  //cascade::cascade_tiff::cascade_->set_stdout(new outbuf());
   //if (!::disable_error.value()) {
-  //  ::cascade_->set_stderr(new outbuf("\033[31m"));
+  //  cascade::cascade_tiff::cascade_->set_stderr(new outbuf("\033[31m"));
   //}
   //if (!::disable_warning.value()) {
-  //  ::cascade_->set_stdwarn(new outbuf("\033[33m"));
+  //  cascade::cascade_tiff::cascade_->set_stdwarn(new outbuf("\033[33m"));
   //}
   //if (::enable_info.value()) {
-  //  ::cascade_->set_stdinfo(new outbuf("\033[37m"));
+  //  cascade::cascade_tiff::cascade_->set_stdinfo(new outbuf("\033[37m"));
   //}
   auto* fb = new filebuf();
   fb->open("tiff_cascade.log", ios::app | ios::out);
-  ::cascade_->set_stdlog(fb);
+  cascade::cascade_tiff::cascade_->set_stdlog(fb);
 
   //// Print the initial prompt
   //cout << ">>> ";
   
   // Start cascade, and read the march file and -e file (if provided)
-  ::cascade_->run();
-  *::cascade_ << "`include \"share/cascade/march/regression/f1_minimal.v\"\n"
+  cascade::cascade_tiff::cascade_->run();
+  *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/f1_minimal.v\"\n"
               << "`include \"share/cascade/test/benchmark/mips32/\"\n"
 	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024.v\"" << endl;
-  //::cascade_->stop_now();
+  //cascade::cascade_tiff::cascade_->stop_now();
   //
   //// Switch to reading from cin if the REPL wasn't disable and wait for finish
   //if (!::disable_repl.value()) {
-  //  ::cascade_->rdbuf(cin.rdbuf());
+  //  cascade::cascade_tiff::cascade_->rdbuf(cin.rdbuf());
   //}
-  //::cascade_->run();
-  //::cascade_->wait_for_stop();
+  //cascade::cascade_tiff::cascade_->run();
+  //cascade::cascade_tiff::cascade_->wait_for_stop();
   //
   //// If cascade isn't finished by now, it's because we've caught a signal.
   //// Either way, we can delete it now.
-  //if (!::cascade_->is_finished()) {
+  //if (!cascade::cascade_tiff::cascade_->is_finished()) {
   //  cerr << "\033[31mCaught Signal\033[00m" << endl;
   //}
-  //delete ::cascade_;
+  //delete cascade::cascade_tiff::cascade_;
   //
   //cout << "Goodbye!" << endl;
   
-  ::cascade_->flush();
+  cascade::cascade_tiff::cascade_->flush();
 
   // Sleep for 30 seconds
   usleep(30000000);
   
   // Retarget
-  *::cascade_ << "initial retarget(\"regression/f1_minimal_tif\");\n";
+  *cascade::cascade_tiff::cascade_ << "initial retarget(\"regression/f1_minimal_tif\");\n";
   
 
   return 0;
