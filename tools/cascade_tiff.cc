@@ -202,8 +202,8 @@ int main(int argc, char** argv) {
   ::cascade_ = new Cascade();
 
   // Set command line flags
-  ::cascade_->set_fopen_dirs(::fopen_dirs.value());
-  ::cascade_->set_include_dirs(::inc_dirs.value());
+  //::cascade_->set_fopen_dirs(::fopen_dirs.value());
+  //::cascade_->set_include_dirs(::inc_dirs.value());
   //::cascade_->set_enable_inlining(!::disable_inlining.value());
   //::cascade_->set_open_loop_target(::open_loop_target.value());
   //::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
