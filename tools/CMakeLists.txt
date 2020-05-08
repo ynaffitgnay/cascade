@@ -11,6 +11,10 @@ add_executable(cascade_slave cascade_slave.cc)
 target_link_libraries(cascade_slave PRIVATE libcascade Threads::Threads ${CMAKE_DL_LIBS})
 install(TARGETS cascade_slave RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
+add_executable(cascade_tiff cascade_tiff.cc)
+target_link_libraries(cascade PRIVATE libcascade Threads::Threads ${CMAKE_DL_LIBS})
+install(TARGETS cascade_tiff RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
 add_executable(de10_probe de10_probe.cc)
 target_link_libraries(de10_probe PRIVATE libcascade Threads::Threads)
 
