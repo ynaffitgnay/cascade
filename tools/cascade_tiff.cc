@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include "include/cascade.h"
 #include "cl/cl.h"
+#include "common/system.h"
 
 using namespace cascade;
 using namespace cascade::cl;
@@ -202,8 +203,8 @@ int main(int argc, char** argv) {
   cascade::cascade_tiff::cascade_ = new Cascade();
 
   // Set command line flags
-  //cascade::cascade_tiff::cascade_->set_fopen_dirs(::fopen_dirs.value());
-  //cascade::cascade_tiff::cascade_->set_include_dirs(::inc_dirs.value());
+  cascade::cascade_tiff::cascade_->set_fopen_dirs(System::src_root());
+  cascade::cascade_tiff::cascade_->set_include_dirs("share/cascade/test/benchmark/mips32/");
   //cascade::cascade_tiff::cascade_->set_enable_inlining(!::disable_inlining.value());
   //cascade::cascade_tiff::cascade_->set_open_loop_target(::open_loop_target.value());
   //cascade::cascade_tiff::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
@@ -217,7 +218,7 @@ int main(int argc, char** argv) {
 
   //// Map standard streams to colored outbufs
   //if (::disable_repl.value()) {
-  //  cascade::cascade_tiff::cascade_->set_stdin(cin.rdbuf());
+  cascade::cascade_tiff::cascade_->set_stdin(cin.rdbuf());
   //}
   //cascade::cascade_tiff::cascade_->set_stdout(new outbuf());
   //if (!::disable_error.value()) {
@@ -236,10 +237,11 @@ int main(int argc, char** argv) {
   //// Print the initial prompt
   //cout << ">>> ";
   
+  cout << "made it to here" << endl;
+
   // Start cascade, and read the march file and -e file (if provided)
   cascade::cascade_tiff::cascade_->run();
   *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/f1_minimal.v\"\n"
-              << "`include \"share/cascade/test/benchmark/mips32/\"\n"
 	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024.v\"" << endl;
   //cascade::cascade_tiff::cascade_->stop_now();
   //
@@ -258,15 +260,15 @@ int main(int argc, char** argv) {
   //delete cascade::cascade_tiff::cascade_;
   //
   //cout << "Goodbye!" << endl;
-  
+    cout << "made it to here 2" << endl;
   cascade::cascade_tiff::cascade_->flush();
 
   // Sleep for 30 seconds
   usleep(30000000);
-  
+      cout << "made it to here 3" << endl;
   // Retarget
   *cascade::cascade_tiff::cascade_ << "initial retarget(\"regression/f1_minimal_tif\");\n";
-  
+      cout << "made it to here 4" << endl;
 
   return 0;
 }
