@@ -25,7 +25,8 @@ set CL_MODULE cl_aos
 ## Command-line Arguments
 #################################################
 set timestamp           [lindex $argv  0]
-set strategy            [lindex $argv  1]
+#set strategy            [lindex $argv  1]
+set strategy            "CASCADE"
 set hdk_version         [lindex $argv  2]
 set shell_version       [lindex $argv  3]
 set device_id           [lindex $argv  4]
@@ -170,6 +171,10 @@ switch $strategy {
     "DEFAULT" {
         puts "DEFAULT strategy."
         source $HDK_SHELL_DIR/build/scripts/strategy_DEFAULT.tcl
+    }
+    "CASCADE" {
+        puts "CASCADE strategy."
+        source $CL_DIR/build/scripts/strategy_CASCADE.tcl
     }
     default {
         puts "$strategy is NOT a valid strategy. Defaulting to strategy DEFAULT."
