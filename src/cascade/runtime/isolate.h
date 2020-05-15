@@ -84,6 +84,7 @@ class Isolate : public Builder {
     ModuleItem* build(const GenvarDeclaration* gd) override;
     ModuleItem* build(const LocalparamDeclaration* ld) override;
     ModuleItem* build(const ParameterDeclaration* pd) override;
+    ModuleItem* build(const RegDeclaration* rd) override;
     ModuleItem* build(const PortDeclaration* pd) override;
     Statement* build(const ParBlock* pb) override;
     Statement* build(const SeqBlock* sb) override;
