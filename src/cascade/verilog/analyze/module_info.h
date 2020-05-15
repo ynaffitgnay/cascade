@@ -193,7 +193,6 @@ class ModuleInfo : public Visitor {
     void visit(const PortDeclaration* pd) override;
     void visit(const BlockingAssign* ba) override;
     void visit(const NonblockingAssign* na) override;
-    void visit(const YieldStatement* ys) override;
     void visit(const EventControl* ec) override;
     void visit(const VariableAssign* va) override;
 
@@ -205,6 +204,21 @@ class ModuleInfo : public Visitor {
     };
     void refresh();
     Type get_type(const Identifier* id);
+
+    // Checks for yield statements below this node
+    class YieldCheck : Visitor {
+      public:
+        YieldCheck();
+        ~YieldCheck() override = default;
+        bool run(const Node* n);
+      private:
+        void visit(const CaseGenerateConstruct* cgc) override;
+        void visit(const IfGenerateConstruct* igc) override;
+        void visit(const LoopGenerateConstruct* lgc) override;
+        void visit(const ModuleInstantiation* mi) override;
+        void visit(const YieldStatement* ys) override;
+        bool res_;
+    };
 };
 
 } // namespace cascade 
