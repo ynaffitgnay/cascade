@@ -217,8 +217,10 @@ void Printer::visit(const RangeExpression* re) {
 
 void Printer::visit(const UnaryExpression* ue) {
   static array<string,10> ops_ {{"+",  "-",  "!",  "~",  "&", "~&", "|",  "~|", "^", "~^"}};
+  *this << Color::RED << "(" << Color::RESET;
   *this << Color::RED << ops_[static_cast<size_t>(ue->get_op())] << Color::RESET;
   ue->accept_lhs(this);
+  *this << Color::RED << ")" << Color::RESET;
 }
 
 void Printer::visit(const GenerateBlock* gb) {
