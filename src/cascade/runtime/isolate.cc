@@ -72,8 +72,8 @@ MId Isolate::isolate(const ModuleInstantiation* mi) {
 }
 
 Attributes* Isolate::build(const Attributes* as) {
-  // Ignore attributes that aren't required by back-end passes
-  return as->find("non_volatile") ? new Attributes("non_volatile") : new Attributes();
+  // Ignore attributes 
+  return new Attributes();
 }
 
 Expression* Isolate::build(const Identifier* id) {
@@ -144,6 +144,16 @@ ModuleItem* Isolate::build(const ParameterDeclaration* pd) {
     Resolve().get_full_id(pd->get_id())
   ));
   return res;
+}
+
+ModuleItem* Isolate::build(const RegDeclaration* rd) {
+  return new RegDeclaration(
+    ModuleInfo(src_).is_volatile(rd->get_id()) ? new Attributes("volatile") : new Attributes("non_volatile"),
+    rd->accept_id(this),
+    rd->get_type(),
+    rd->accept_dim(this),
+    rd->accept_val(this)
+  );
 }
 
 ModuleItem* Isolate::build(const PortDeclaration* pd) {
@@ -273,7 +283,6 @@ ModuleDeclaration* Isolate::get_shell() {
     // promoted to a register and when should it remain a net? There could be a
     // funny interaction here if a dereference of an external register is
     // promoted to an input.
-    const auto nonvolatile = decl->get_attrs()->find("non_volatile");
     const auto is_signed = decl->is(Node::Tag::reg_declaration) ?
       static_cast<const RegDeclaration*>(decl)->get_type() :
       static_cast<const NetDeclaration*>(decl)->get_type();
@@ -283,7 +292,7 @@ ModuleDeclaration* Isolate::get_shell() {
       (read && write) ? PortDeclaration::Type::INOUT : write ? PortDeclaration::Type::INPUT : PortDeclaration::Type::OUTPUT,
       (info.is_local(p.second) && p.second->get_parent()->is(Node::Tag::reg_declaration)) ? 
         static_cast<Declaration*>(new RegDeclaration(
-          nonvolatile ? new Attributes("non_volatile") : new Attributes(),
+          ModuleInfo(src_).is_volatile(p.second) ? new Attributes("volatile") : new Attributes("non_volatile"),
           to_global_id(p.second),
           is_signed,
           (width == 1) ? nullptr : new RangeExpression(width),

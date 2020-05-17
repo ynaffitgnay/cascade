@@ -71,14 +71,9 @@ void ModuleInfo::invalidate() {
   Vector<const Identifier*>().swap(md_->ordered_ports_);
   ModuleDeclaration::ConnMap().swap(md_->connections_);
   ModuleDeclaration::ChildMap().swap(md_->children_);
-  md_->enclosing_root_ = nullptr;
   md_->uses_mixed_triggers_ = false;
   md_->clocks_ = 0;
-
-  // Note the non-standard behavior. The uses_yield flag can't ever go false
-  // once it's been asserted (cascade doesn't allow you to delete eval'ed
-  // code). This is a placehold for where we *would* reset the flag.
-  // md_->uses_yield_ = false; // ... DONT DO THIS
+  md_->uses_yield_ = false; 
 }
 
 bool ModuleInfo::is_declaration() {
@@ -127,12 +122,15 @@ bool ModuleInfo::is_volatile(const Identifier* id) {
   const auto* r = Resolve().get_resolution(id);
   assert(r != nullptr);
   const auto* attrs = static_cast<const Declaration*>(r->get_parent())->get_attrs();
-  // If this program uses yield, we're volatile by default, otherwise not
-  if (uses_yield()) {
-    return attrs->find("non_volatile") ? false : true;
-  } else {
-    return attrs->find("volatile") ? true : false;
+  // Annotations override defaults
+  if (attrs->find("non_volatile")) {
+    return false;
+  } 
+  if (attrs->find("volatile")) {
+    return true;
   }
+  // If this program uses yield, we're volatile by default, otherwise not
+  return uses_yield();
 }
 
 bool ModuleInfo::is_implied_wire(const Identifier* id) {
@@ -182,10 +180,8 @@ bool ModuleInfo::uses_multiple_clocks() {
 }
 
 bool ModuleInfo::uses_yield() {
-  // Note the non-standard behavior. Every module declaration has a uses_yield
-  // flag, but the only one we use is the one that lives in the root.
   refresh();
-  return md_->enclosing_root_->uses_yield_;
+  return md_->uses_yield_;
 }
 
 const unordered_set<const Identifier*>& ModuleInfo::locals() {
@@ -752,12 +748,6 @@ void ModuleInfo::visit(const NonblockingAssign* na) {
   na->accept_rhs(this);
 }
 
-void ModuleInfo::visit(const YieldStatement* ys) {
-  // Note the non-standard behavior for this flag. The appearance of a yield
-  // statement sets the uses_yield flag in the module that encloses this one.
-  md_->enclosing_root_->uses_yield_ = true;
-}
-
 void ModuleInfo::visit(const EventControl* ec) {
   Visitor::visit(ec);
 
@@ -797,7 +787,7 @@ void ModuleInfo::refresh() {
 
   Node* er = nullptr;
   for (er = md_; er->get_parent() != nullptr; er = er->get_parent());
-  md_->enclosing_root_ = static_cast<ModuleDeclaration*>(er);
+  md_->uses_yield_ = YieldCheck().run(er);
 
   for (; md_->next_update_ < size; ++md_->next_update_) {
     md_->get_items(md_->next_update_)->accept(this);
@@ -923,6 +913,46 @@ ModuleInfo::Type ModuleInfo::get_type(const Identifier* id) {
   // If control has reached here, and we saw at least one use of a wire-style
   // assignment, then this is a wire. Otherwise, this is a register.
   return (tcs_use != nullptr) ? Type::IMPLIED_WIRE : Type::REG;
+}
+
+ModuleInfo::YieldCheck::YieldCheck() : Visitor() { }
+
+bool ModuleInfo::YieldCheck::run(const Node* n) {
+  res_ = false;
+  n->accept(this);
+  return res_;
+}
+
+void ModuleInfo::YieldCheck::visit(const CaseGenerateConstruct* cgc) {
+  if (Elaborate().is_elaborated(cgc)) {
+    Elaborate().get_elaboration(cgc)->accept(this);
+  }
+}
+
+void ModuleInfo::YieldCheck::visit(const IfGenerateConstruct* igc) {
+  if (Elaborate().is_elaborated(igc)) {
+    Elaborate().get_elaboration(igc)->accept(this);
+  }
+}
+
+void ModuleInfo::YieldCheck::visit(const LoopGenerateConstruct* lgc) {
+  if (Elaborate().is_elaborated(lgc)) {
+    for (auto* b : Elaborate().get_elaboration(lgc)) {
+      b->accept(this);
+    }
+  }
+}
+
+void ModuleInfo::YieldCheck::visit(const ModuleInstantiation* mi) {
+  if (Inline().is_inlined(mi)) {
+    Inline().get_source(mi)->accept(this);
+  } else if (Elaborate().is_elaborated(mi)) {
+    Elaborate().get_elaboration(mi)->accept(this); 
+  }
+}
+
+void ModuleInfo::YieldCheck::visit(const YieldStatement* ys) {
+  res_ = true;
 }
 
 } // namespace cascade
