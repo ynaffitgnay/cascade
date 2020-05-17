@@ -188,8 +188,8 @@ inline AosLogic<T>* AosCompiler<T>::compile_logic(Engine::Id id, ModuleDeclarati
   // Check table and index sizes. If this program uses too much state, we won't
   // be able to uniquely name its elements using our current addressing scheme.
   const size_t nv_size = al->get_table()->size();
-  if (nv_size >= 0x1000) {
-    get_compiler()->error("Aos backends do not currently support more than 4096 entries in variable table");
+  if (nv_size >= 0x4000) {
+    get_compiler()->error("Aos backends do not currently support more than 16,384 entries in variable table");
     delete al;
     return nullptr;
   }

@@ -82,7 +82,7 @@ class TextMangle : public Builder {
     Statement* build(const SaveStatement* ss) override;
     Statement* build(const YieldStatement* ys) override;
 
-    Expression* get_table_range(const Identifier* r, const Identifier* i);
+    RangeExpression* get_table_range(const Identifier* r, const Identifier* i);
 };
 
 template <typename T>
@@ -157,12 +157,19 @@ inline Statement* TextMangle<T>::build(const NonblockingAssign* na) {
   ));
 
   // Insert a new assignment to the next mask
+  auto* re = get_table_range(r,lhs);
+  //const size_t begin_index = Evaluate().get_value(re->get_lower()).to_uint();
+  //const size_t end_index   = Evaluate().get_value(re->get_upper()).to_uint() + 1;
   res->push_back_stmts(new NonblockingAssign(
     new Identifier(
       new Id("__update_queue"),
-      get_table_range(r, lhs)
+      re
     ),
-    new Number(Bits(64, -1))
+    new UnaryExpression(
+      UnaryExpression::Op::TILDE,
+      //new Number(Bits(end_index-begin_index, 0))
+      new Number(Bits(1, 0))
+    )
   ));
 
   return res;
@@ -274,7 +281,7 @@ inline Statement* TextMangle<T>::build(const YieldStatement* ys) {
 }
 
 template <typename T>
-inline Expression* TextMangle<T>::get_table_range(const Identifier* r, const Identifier* i) {
+inline RangeExpression* TextMangle<T>::get_table_range(const Identifier* r, const Identifier* i) {
   // Look up r in the variable table
   const auto titr = vt_->find(r);
   assert(titr != vt_->end());
