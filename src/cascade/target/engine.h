@@ -232,15 +232,15 @@ inline void Engine::replace_with(Engine* e) {
   // Move state and inputs from this engine into the new engine
   const auto* s = c_->get_state();
   e->c_->set_state(s);
-  //delete s;
+  delete s;
   const auto* i = c_->get_input();
   e->c_->set_input(i);
-  //delete i;
+  delete i;
   e->c_->finalize();
 
   // Now that we're done with our core and interface, delete them.
-  //delete c_;
-  //delete i_;
+  delete c_;
+  delete i_;
 
   // Move the internal state from the new engine into this one
   c_ = e->c_;
@@ -250,7 +250,7 @@ inline void Engine::replace_with(Engine* e) {
   // Delete the shell which is left over
   e->i_ = nullptr;
   e->c_ = nullptr;
-  //delete e;
+  delete e;
 }
 
 } // namespace cascade

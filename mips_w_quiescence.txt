@@ -1,0 +1,42 @@
+Started logical simulation...
+Installation Path: /home/centos/src/project_data/cascade/build/tools/../
+Fopen dirs:        ./:/home/centos/src/project_data/cascade/build/tools/../
+Include dirs:      /home/centos/src/project_data/cascade/build/tools/../:share/cascade/test/benchmark/mips32/
+C++ Compiler:      /opt/rh/devtoolset-8/root/usr/bin/c++
+Typechecker Warning:
+  > In module declaration in share/cascade/test/benchmark/mips32/mips32yield.v on line 30: clock.val
+    Found reference to unresolvable identifier, this may result in an error during instantiation
+  > In module declaration in share/cascade/test/benchmark/mips32/mips32yield.v on line 57: clock.val
+    Found reference to unresolvable identifier, this may result in an error during instantiation
+  > In module declaration in share/cascade/test/benchmark/mips32/mips32yield.v on line 65: clock.val
+    Found reference to unresolvable identifier, this may result in an error during instantiation
+Typechecker Warning:
+  > In module item in share/cascade/test/benchmark/mips32/run_bubble_128_1024_withyield.v on line 6: for (i = 0; (i < 63); i = (i + 1)) begin
+    	$__get(s,"%u",val);
+    	imem[i] <= val;
+    end 
+    Cascade attempts to statically unroll all loop statements and may hang if it is not possible to do so
+Finished pass 1 compilation of root with attributes (*__std = "logic",__loc = "local",__target = "sw"*) 
+Finished pass 1 compilation of root.clock with attributes (*__std = "clock",__loc = "local",__target = "sw"*) 
+Found 163 volatile variables
+<save> root
+<save> root.clock
+Deploying agfi-0b254d18503db998b to fpga 0
+<restart> root
+<restart> root.clock
+Logical Time: 344222
+Virtual Freq: 57 KHz
+Finished pass 2 compilation of root with attributes (*__std = "logic",__loc = "local",__target = "f1"*) 
+Logical Time: 34160796
+Virtual Freq: 16 MHz
+Logical Time: 151601308
+Virtual Freq: 29 MHz
+Logical Time: 285819036
+Virtual Freq: 67 MHz
+Logical Time: 487145628
+Virtual Freq: 33 MHz
+Logical Time: 621363356
+Virtual Freq: 67 MHz
+Logical Time: 822689948
+Virtual Freq: 33 MHz
+Retargeted

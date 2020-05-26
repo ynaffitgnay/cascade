@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   //cascade::cascade_tiff::cascade_->set_enable_inlining(!::disable_inlining.value());
   //cascade::cascade_tiff::cascade_->set_open_loop_target(::open_loop_target.value());
   //cascade::cascade_tiff::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
-  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9903, 0);
+  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9904, 0);
   cascade::cascade_tiff::cascade_->set_profile_interval(1);
   cascade::cascade_tiff::cascade_->set_stdout(std::cout.rdbuf());
   cascade::cascade_tiff::cascade_->set_stderr(std::cout.rdbuf());
@@ -79,17 +79,25 @@ int main(int argc, char** argv) {
 
   // Start cascade, and read the march file and -e file (if provided)
   cascade::cascade_tiff::cascade_->run();
-  *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/f1_minimal.v\"\n"
-	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024.v\"" << endl;
+  *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/f1_minimal_tif.v\"\n"
+	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024_withyield.v\"" << endl;
 
+  // Block until execution is complete
+  cascade::cascade_tiff::cascade_->stop_now();
+  
   cascade::cascade_tiff::cascade_->flush();
 
-  // Sleep for 30 seconds
-  usleep(30000000);
-      cout << "made it to here 3" << endl;
-  // Retarget
-  *cascade::cascade_tiff::cascade_ << "initial retarget(\"regression/f1_minimal_tif\");\n";
-      cout << "made it to here 4" << endl;
+  // Don't retarget yet
+  // Sleep for 10 seconds
+  //usleep(15000000);
+  //// Retarget
+  //*cascade::cascade_tiff::cascade_ << "initial $retarget(\"regression/f1_minimal_tif\");\n";
+  //cout << "Retargeted" << endl;
+  //
+  //cascade::cascade_tiff::cascade_->flush();
+
+  // Block until execution is complete
+  cascade::cascade_tiff::cascade_->stop_now();
 
   return 0;
 }
