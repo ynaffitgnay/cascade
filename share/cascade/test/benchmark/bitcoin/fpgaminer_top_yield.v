@@ -80,6 +80,7 @@ module fpgaminer_top (osc_clk);
   );
 
   //// Control Unit
+  (*non_volatile*)
   reg [31:0] golden_nonce = 0;
   reg is_golden_ticket = 1'b0;
   reg feedback_d1 = 1'b1;

@@ -26,7 +26,7 @@ set CL_MODULE cl_aos
 #################################################
 set timestamp           [lindex $argv  0]
 #set strategy            [lindex $argv  1]
-set strategy            "CASCADE"
+set strategy            "BASIC"
 set hdk_version         [lindex $argv  2]
 set shell_version       [lindex $argv  3]
 set device_id           [lindex $argv  4]
@@ -261,13 +261,6 @@ if {$implement} {
    # CL Optimize
    ########################
    set place_preHookTcl  ""
-   set SLACK [get_property SLACK [get_timing_paths]]
-   if {[expr {$SLACK / $clk_main_a0_period < -0.25}]} {
-      puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Early timing failure";
-      puts "Clock period: $clk_main_a0_period";
-      puts "Current slack: $SLACK";
-      exit 0;
-   }
    if {$opt} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running optimization";
       impl_step opt_design $TOP $opt_options $opt_directive $opt_preHookTcl $opt_postHookTcl
@@ -290,13 +283,6 @@ if {$implement} {
    ########################
    # CL Place
    ########################
-   set SLACK [get_property SLACK [get_timing_paths]]
-   if {[expr {$SLACK / $clk_main_a0_period < -0.25}]} {
-      puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Early timing failure";
-      puts "Clock period: $clk_main_a0_period";
-      puts "Current slack: $SLACK";
-      exit 0;
-   }
    if {$place} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running placement";
       if {$psip} {
@@ -312,8 +298,7 @@ if {$implement} {
    ##############################
    # CL Post-Place Optimization
    ##############################
-   set SLACK [get_property SLACK [get_timing_paths]]
-   if {$phys_opt && [expr {$SLACK / $clk_main_a0_period > -0.125}]} {
+   if {$phys_opt} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running post-place optimization";
       impl_step phys_opt_design $TOP $phys_options $phys_directive $phys_preHookTcl $phys_postHookTcl
       #puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Updating design with Vivado suggestions";
@@ -325,8 +310,7 @@ if {$implement} {
    ########################
    # CL Route
    ########################
-   set SLACK [get_property SLACK [get_timing_paths]]
-   if {$route && [expr {$SLACK / $clk_main_a0_period > -0.100}]} {
+   if {$route} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Routing design";
       impl_step route_design $TOP $route_options $route_directive $route_preHookTcl $route_postHookTcl
       #puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Updating design with Vivado suggestions";
@@ -339,8 +323,8 @@ if {$implement} {
    # CL Post-Route Optimization
    ##############################
    set SLACK [get_property SLACK [get_timing_paths]]
-   #Post-route phys_opt will not be run if slack is positive or greater than -200ps.
-   if {$route_phys_opt && [expr {$SLACK / $clk_main_a0_period > -0.05}] && $SLACK < 0} {
+   #Post-route phys_opt will not be run if slack is positive.
+   if {$route_phys_opt && $SLACK < 0} {
       puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Running post-route optimization";
       impl_step route_phys_opt_design $TOP $post_phys_options $post_phys_directive $post_phys_preHookTcl $post_phys_postHookTcl
       #puts "AWS FPGA: ([clock format [clock seconds] -format %T]) - Updating design with Vivado suggestions";

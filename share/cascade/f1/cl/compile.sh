@@ -8,7 +8,8 @@ function kill_subproc {
 }
 
 {
-trap kill_subproc SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+trap kill_subproc SIGINT SIGQUIT SIGABRT SIGTERM
+trap "" SIGHUP
 
 export HOME_DIR=/home/centos/src/project_data
 export AWS_FPGA=$HOME_DIR/aws-fpga
