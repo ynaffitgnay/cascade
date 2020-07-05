@@ -83,7 +83,7 @@ inline syncbuf::syncbuf() {
 }
 
 inline syncbuf::~syncbuf() {
-  delete data_;
+  delete[] data_;
   //std::cout << "Final capacity: " << data_cap_ << std::endl;
 }
 

@@ -8,7 +8,8 @@ function kill_subproc {
 }
 
 {
-trap kill_subproc SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+trap kill_subproc SIGINT SIGQUIT SIGABRT SIGTERM
+trap "" SIGHUP
 
 export HOME_DIR=/home/centos/src/project_data
 export AWS_FPGA=$HOME_DIR/aws-fpga
@@ -28,6 +29,7 @@ rm -f awsver.txt
 
 cp $AWS_FPGA/hdk/common/shell_stable/build/scripts/aws_build_dcp_from_cl.sh ./aws_build_dcp_from_cl.sh
 rm -f *.log
+rm -f ../checkpoints/last_synth.dcp
 rm -f ../checkpoints/last_routed.dcp
 rm -f ../checkpoints/last_suggestions.rqs
 
@@ -39,7 +41,8 @@ do
 	echo "Attempting ${freqs[$i]} build..."
 	echo ${freqs[$i]} >freq.txt
 	#./aws_build_dcp_from_cl.sh -clock_recipe_a ${recipes[$i]} -strategy CONGESTION -foreground >log.txt 2>&1
-	./aws_build_dcp_from_cl.sh -clock_recipe_a ${recipes[$i]} -strategy BASIC -foreground >log.txt 2>&1
+	#./aws_build_dcp_from_cl.sh -clock_recipe_a ${recipes[$i]} -strategy BASIC -foreground >log.txt 2>&1
+	./aws_build_dcp_from_cl.sh -clock_recipe_a ${recipes[$i]} -foreground >log.txt 2>&1
 	RC=$?
 	TIME=$(basename $(ls -1 *.vivado.log | tail -n 1) .vivado.log)
 	mkdir -p ../../../old_logs

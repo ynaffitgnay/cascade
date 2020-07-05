@@ -114,7 +114,6 @@ class Program : public Editor {
 
   private:
     // Source:
-    ModuleInstantiation* root_inst_;
     ManagedUndoMap<const Identifier*, false, ModuleDeclaration*, true, HashId, EqId> decls_;
     ManagedUndoMap<const Identifier*, true, ModuleDeclaration*, false, HashId, EqId> elabs_;
 

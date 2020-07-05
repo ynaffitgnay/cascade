@@ -111,6 +111,12 @@ read_xdc [ list \
 set_property USED_IN {synthesis implementation OUT_OF_CONTEXT} [get_files cl_clocks_aws.xdc]
 set_property PROCESSING_ORDER EARLY  [get_files cl_clocks_aws.xdc]
 
+# Reuse last build
+if { [file exists $CL_DIR/build/checkpoints/last_synth.dcp] } {
+   puts "\nAWS FPGA: ([clock format [clock seconds] -format %T]) - Reading in last checkpoint for incremental compilation";
+   read_checkpoint -incremental $CL_DIR/build/checkpoints/last_synth.dcp
+}
+
 ########################
 # CL Synthesis
 ########################
@@ -128,6 +134,7 @@ if { $failval==0 } {
 
 puts "AWS FPGA: ([clock format [clock seconds] -format %T]) writing post synth checkpoint.";
 write_checkpoint -force $CL_DIR/build/checkpoints/${timestamp}.CL.post_synth.dcp
+write_checkpoint -force -incremental_synth $CL_DIR/build/checkpoints/last_synth.dcp
 
 close_project
 #Set param back to default value

@@ -197,30 +197,17 @@ template <typename T>
 inline void Rewrite<T>::emit_access_vars(ModuleDeclaration* res, size_t nv_size) {
   ItemBuilder ib;
   
-  // Calculate buffer sizes
-  const size_t buffer_depth = 6;
-  size_t buffer_reduce [3] = {16, 16, 16};
-  size_t buffer_size [3] = {1024, 64, 4};
-  buffer_size[0] = (nv_size + buffer_reduce[0]-1) / buffer_reduce[0];
-  buffer_size[1] = (buffer_size[0] + buffer_reduce[1]-1) / buffer_reduce[1];
-  buffer_size[2] = (buffer_size[1] + buffer_reduce[2]-1) / buffer_reduce[2];
-  
-  // Emit input buffer regs
-  ib << "(* shreg_extract = \"no\" *) reg __read_request_buf [" << buffer_depth-1 << ":4];" << std::endl;
-  ib << "(* shreg_extract = \"no\" *) reg[13:0] __vid_buf [" << buffer_depth-1 << ":0];" << std::endl;
-  ib << "(* shreg_extract = \"no\" *) reg[63:0] __in_buf [" << buffer_depth-1 << ":4];" << std::endl;
-  ib << "(* shreg_extract = \"no\" *) reg __out_valid_buf [" << buffer_depth-1 << ":0];" << std::endl;
-  
-  // Emit output buffer regs
-  ib << "reg[63:0] __out_buf0 [" << buffer_size[0]-1 << ":0];" << std::endl;
-  ib << "reg[63:0] __out_buf1 [" << buffer_size[1]-1 << ":0];" << std::endl;
-  ib << "reg[63:0] __out_buf2 [" << buffer_size[2]-1 << ":0];" << std::endl;
-  ib << "reg[63:0] __out_buf3;" << std::endl;
-  ib << "reg[63:0] __out;" << std::endl;
+  // Emit buffer regs
+  ib << "(* shreg_extract = \"no\" *) reg [" << (nv_size-1) << ":0] __read_buf [3:2];" << std::endl;
+  ib << "(* shreg_extract = \"no\" *) reg [" << (nv_size-1) << ":0] __write_buf [3:2];" << std::endl;
+  ib << "(* shreg_extract = \"no\" *) reg [63:0] __in_buf [3:2];" << std::endl;
+  ib << "reg [63:0] __out_buf [" << ((nv_size-1)/128) << ":0];" << std::endl;
+  ib << "reg [63:0] __out;" << std::endl;
+  ib << "(* shreg_extract = \"no\" *) reg __out_valid_buf [3:0];" << std::endl;
   
   // Emit interface
-  ib << "wire __read_request;" << std::endl;
-  ib << "wire[13:0] __vid;" << std::endl;
+  ib << "wire [" << (nv_size-1) << ":0] __read;" << std::endl;
+  ib << "wire [" << (nv_size-1) << ":0] __write;" << std::endl;
   ib << "wire[63:0] __in;" << std::endl;
   ib << "wire __wait;" << std::endl;
   res->push_back_items(ib.begin(), ib.end()); 
@@ -401,34 +388,18 @@ template <typename T>
 inline void Rewrite<T>::emit_access_logic(ModuleDeclaration* res, size_t nv_size) {
   ItemBuilder ib;
   
-  // Calculate buffer sizes
-  const size_t buffer_depth = 6;
-  size_t buffer_reduce [3] = {16, 16, 16};
-  size_t buffer_size [3] = {1024, 64, 4};
-  buffer_size[0] = (nv_size + buffer_reduce[0]-1) / buffer_reduce[0];
-  buffer_size[1] = (buffer_size[0] + buffer_reduce[1]-1) / buffer_reduce[1];
-  buffer_size[2] = (buffer_size[1] + buffer_reduce[2]-1) / buffer_reduce[2];
-  
   ib << "always @(posedge __clk) begin: __buf_block" << std::endl;
-  ib << "integer i0;" << std::endl;
-  ib << "integer i1;" << std::endl;
-  ib << "for (i0 = 4; i0 < " << buffer_depth-1 << "; i0 = i0 + 1) begin" << std::endl;
-  ib << "__read_request_buf[i0] <= __read_request_buf[i0+1];" << std::endl;
-  ib << "__in_buf[i0] <= __in_buf[i0+1];" << std::endl;
-  ib << "end" << std::endl;
-  ib << "for (i1 = 0; i1 < " << buffer_depth-1 << "; i1 = i1 + 1) begin" << std::endl;
-  ib << "__vid_buf[i1] <= __vid_buf[i1+1];" << std::endl;
-  ib << "__out_valid_buf[i1] <= __out_valid_buf[i1+1];" << std::endl;
-  ib << "end" << std::endl;
-  ib << "__read_request_buf[" << buffer_depth-1 << "] <= __in_valid & __in_read;" << std::endl;
-  ib << "__vid_buf[" << buffer_depth-1 << "] <= __in_vid;" << std::endl;
-  ib << "__in_buf[" << buffer_depth-1 << "] <= __in_data;" << std::endl;
-  ib << "__out_valid_buf[" << buffer_depth-1 << "] <= __in_valid & !__in_read;" << std::endl;
+  ib << "__read_buf[3] <= (__in_valid && __in_read) << __in_vid;" << std::endl;
+  ib << "__read_buf[2] <= __read_buf[3];" << std::endl;
+  ib << "__write_buf[3] <= (__in_valid && (!__in_read)) << __in_vid;" << std::endl;
+  ib << "__write_buf[2] <= __write_buf[3];" << std::endl;
+  ib << "__in_buf[3] <= __in_data;" << std::endl;
+  ib << "__in_buf[2] <= __in_buf[3];" << std::endl;
   ib << "end" << std::endl;
   
-  ib << "assign __read_request = __read_request_buf[4];" << std::endl;
-  ib << "assign __vid = __vid_buf[4];" << std::endl;
-  ib << "assign __in = __in_buf[4];" << std::endl;
+  ib << "assign __read = __read_buf[2];" << std::endl;
+  ib << "assign __write = __write_buf[2];" << std::endl;
+  ib << "assign __in = __in_buf[2];" << std::endl;
   
   res->push_back_items(ib.begin(), ib.end()); 
 }
@@ -439,7 +410,7 @@ inline void Rewrite<T>::emit_update_logic(ModuleDeclaration* res, const VarTable
 
   const auto update_arity = std::max(static_cast<size_t>(8), vt->size());
   ib << "assign __there_are_updates = |__update_queue;" << std::endl;
-  ib << "assign __apply_updates = ((__read_request && (__vid == " << vt->apply_update_index() << ")) || __open_loop_tick);" << std::endl;
+  ib << "assign __apply_updates = (__read[" << vt->apply_update_index() << "] || __open_loop_tick);" << std::endl;
   
   res->push_back_items(ib.begin(), ib.end());
 }
@@ -470,8 +441,8 @@ inline void Rewrite<T>::emit_state_logic(ModuleDeclaration* res, const VarTable<
     ib << "};" << std::endl;
   }
 
-  ib << "assign __continue = (__read_request && (__vid == " << vt->resume_index() << "));" << std::endl;
-  ib << "assign __reset = (__read_request && (__vid == " << vt->reset_index() << "));" << std::endl;
+  ib << "assign __continue = __read[" << vt->resume_index() << "];" << std::endl;
+  ib << "assign __reset = __read[" << vt->reset_index() << "];" << std::endl;
 
   res->push_back_items(ib.begin(), ib.end());
 }
@@ -532,7 +503,7 @@ template <typename T>
 inline void Rewrite<T>::emit_open_loop_logic(ModuleDeclaration* res, const VarTable<T>* vt) {
   ItemBuilder ib;
 
-  ib << "always @(posedge __clk) __open_loop <= ((__read_request && (__vid == " << vt->open_loop_index() << ")) ? __in : (__open_loop_tick ? (__open_loop - 1) : __open_loop));" << std::endl;
+  ib << "always @(posedge __clk) __open_loop <= (__read[" << vt->open_loop_index() << "] ? __in : (__open_loop_tick ? (__open_loop - 1) : __open_loop));" << std::endl;
   ib << "assign __open_loop_tick = (__all_final && (!__any_triggers && (__open_loop > 0)));" << std::endl;
 
   res->push_back_items(ib.begin(), ib.end());
@@ -567,11 +538,13 @@ inline void Rewrite<T>::emit_var_logic(ModuleDeclaration* res, const ModuleDecla
 
     for (size_t i = 0, ie = itr->second.elements; i < ie; ++i) {
       for (size_t j = 0, je = itr->second.words_per_element; j < je; ++j) {
-        ib << "__var[" << idx << "] <= ";
+        ib << "__var[" << idx << "]";
+        if (w < 64) ib << "[" << (w-1) << ":0]";
+        ib << " <= ";
         if ((clock != nullptr) && (itr->first == clock)) {
-          ib << "__open_loop_tick ? {63'd0,~" << itr->first->front_ids()->get_readable_sid() << "} : ";
+          ib << "__open_loop_tick ? (~" << itr->first->front_ids()->get_readable_sid() << ") : ";
         }
-        ib << "(__read_request && (__vid == " << idx << ")) ? __in : ";
+        ib << "__read[" << idx << "] ? __in : ";
         if (info.is_stateful(itr->first)) {
           auto* id = new Identifier(itr->first->front_ids()->get_readable_sid() + "_next");
           emit_subscript(id, i, ie, arity);
@@ -592,7 +565,9 @@ inline void Rewrite<T>::emit_var_logic(ModuleDeclaration* res, const ModuleDecla
 
     for (size_t i = 0, ie = itr->second.elements; i < ie; ++i) {
       for (size_t j = 0, je = itr->second.words_per_element; j < je; ++j) {
-        ib << "__var[" << idx << "] <= ";
+        ib << "__var[" << idx << "]";
+        if (w < 64) ib << "[" << (w-1) << ":0]";
+        ib << " <= ";
         if ((clock != nullptr) && (itr->first == clock)) {
           ib << "__open_loop_tick ? {63'd0,~" << itr->first->front_ids()->get_readable_sid() << "} : ";
         }
@@ -612,7 +587,7 @@ inline void Rewrite<T>::emit_var_logic(ModuleDeclaration* res, const ModuleDecla
   ib << "end" << std::endl;
 
   ib << "always @(posedge __clk) begin" << std::endl;
-  ib << "if (__read_request && (__vid == " << vt->feof_index() << "))" << std::endl;
+  ib << "if (__read[" << vt->feof_index() << "])" << std::endl;
   ib << "__feof[__in[6:1]] <= __in[0];" << std::endl;
   ib << "end" << std::endl;
   
@@ -631,59 +606,110 @@ inline void Rewrite<T>::emit_output_logic(ModuleDeclaration* res, const ModuleDe
     }
   }
   
-  // Calculate buffer sizes
-  const size_t buffer_depth = 6;
-  size_t buffer_reduce [3] = {16, 16, 16};
-  size_t buffer_size [3] = {1024, 64, 4};
-  buffer_size[0] = (nv_size + buffer_reduce[0]-1) / buffer_reduce[0];
-  buffer_size[1] = (buffer_size[0] + buffer_reduce[1]-1) / buffer_reduce[1];
-  buffer_size[2] = (buffer_size[1] + buffer_reduce[2]-1) / buffer_reduce[2];
+  // Index both inputs and stateful elements in the variable table 
+  std::map<size_t, typename VarTable<T>::const_iterator> vars;
+  for (auto t = vt->begin(), te = vt->end(); t != te; ++t) {
+    if (info.is_input(t->first) || info.is_stateful(t->first)) {
+      if (!info.is_volatile(t->first)) {
+        vars[t->second.begin] = t;
+      }
+    }
+  }
   
+  size_t buf_idx;
   ItemBuilder ib;
+  ib << "reg [63:0] __out_buf_next [" << ((nv_size-1)/128) << ":0];" << std::endl;
+  ib << "reg [63:0] __out_next;" << std::endl;
   ib << "always @(posedge __clk) begin: __out_buf_block" << std::endl;
-  ib << "integer b0;" << std::endl;
-  ib << "integer b1;" << std::endl;
-  ib << "integer b2;" << std::endl;
-  ib << "for (b0 = 0; b0 < " << buffer_size[0] << "; b0 = b0 + 1) begin" << std::endl;
-  ib << "__out_buf0[b0] <=  __var[" << buffer_reduce[0] << "*b0+__vid_buf[4][3:0]];" << std::endl;
+  //ib << "always @(*) begin: __out_buf_reduction" << std::endl;
+  ib << "integer t0;" << std::endl;
+  ib << "integer t1;" << std::endl;
+  ib << "integer t2;" << std::endl;
+  ib << "for (t0 = 0; t0 <= " << ((nv_size-1)/128) << "; t0 = t0 + 1) begin" << std::endl;
+  ib << "__out_buf_next[t0] = 0;" << std::endl;
   ib << "end" << std::endl;
-  ib << "for (b1 = 0; b1 < " << buffer_size[1] << "; b1 = b1 + 1) begin" << std::endl;
-  ib << "__out_buf1[b1] <= __out_buf0[" << buffer_reduce[1] << "*b1+__vid_buf[3][7:4]];" << std::endl;
-  ib << "end" << std::endl;
-  ib << "for (b2 = 0; b2 < " << buffer_size[2] << "; b2 = b2 + 1) begin" << std::endl;
-  ib << "__out_buf2[b2] <= __out_buf1[" << buffer_reduce[2] << "*b2+__vid_buf[2][11:8]];" << std::endl;
-  ib << "end" << std::endl;
-  ib << "__out_buf3 <= __out;" << std::endl;
-  ib << "end" << std::endl;
-  ib << "assign __out_data = __out_buf3;" << std::endl;
-  ib << "assign __out_valid = __out_valid_buf[0];" << std::endl;
+  
+  buf_idx = 0;
+  ib << "__out_buf_next[" << buf_idx << "] = __out_buf_next[" << buf_idx << "] | ";
+  ib << "(__write[" << vt->there_are_updates_index();
+  ib << "] ? __there_are_updates : 0);" << std::endl;
+  
+  ib << "__out_buf_next[" << buf_idx << "] = __out_buf_next[" << buf_idx << "] | ";
+  ib << "(__write[" << vt->there_were_tasks_index();
+  ib << "] ? __task_id[0] : 0);" << std::endl;
+  
+  ib << "__out_buf_next[" << buf_idx << "] = __out_buf_next[" << buf_idx << "] | ";
+  ib << "(__write[" << vt->open_loop_index();
+  ib << "] ? __open_loop : 0);" << std::endl;
+  
+  ib << "__out_buf_next[" << buf_idx << "] = __out_buf_next[" << buf_idx << "] | ";
+  ib << "(__write[" << vt->wait_index();
+  ib << "] ? __wait : 0);" << std::endl;
+  
+  ib << "__out_buf_next[" << buf_idx << "] = __out_buf_next[" << buf_idx << "] | ";
+  ib << "(__write[" << vt->debug_index();
+  ib << "] ? __state[0] : 0);" << std::endl;
+  
+  for (const auto& v : vars) {
+    const auto itr = v.second;
+    const auto arity = Evaluate().get_arity(itr->first);
+    const auto w = itr->second.bits_per_element;
+    auto idx = itr->second.begin;
 
-  ib << "always @*" << std::endl;
-  ib << "case(__vid_buf[1])" << std::endl;
-
+    for (size_t i = 0, ie = itr->second.elements; i < ie; ++i) {
+      for (size_t j = 0, je = itr->second.words_per_element; j < je; ++j) {
+        buf_idx = idx/128;
+        ib << "__out_buf_next[" << buf_idx << "] = ";
+        ib << "__out_buf_next[" << buf_idx << "] | ";
+        ib << "(__write[" << idx << "] ? ";
+        ib << "__var[" << idx << "]";
+        if (w < 64) ib << "[" << (w-1) << ":0]";
+        ib << " : 0);" << std::endl;
+        
+        ++idx;
+      }
+    }
+  }
+  
   for (const auto& o : outputs) {
     const auto itr = o.second;
     assert(itr->second.elements == 1);
     const auto w = itr->second.bits_per_element;
     for (size_t i = 0; i < itr->second.words_per_element; ++i) {
-      ib << (itr->second.begin+i) << ": __out = ";
+      buf_idx = (itr->second.begin+i)/128;
+      ib << "__out_buf_next[" << buf_idx << "] = ";
+      ib << "__out_buf_next[" << buf_idx << "] | ";
+      ib << "(__write[" << (itr->second.begin+i) << "] ? ";
 
       auto* id = itr->first->clone();
       id->purge_dim();
       emit_slice(id, w, i);
-      ib << id << ";" << std::endl;
+      ib << id << " : 0);" << std::endl;
 
       delete id;
     }
   }
   
-  ib << vt->there_are_updates_index() << ": __out = __there_are_updates;" << std::endl;
-  ib << vt->there_were_tasks_index() << ": __out = __task_id[0];" << std::endl;
-  ib << vt->open_loop_index() << ": __out = __open_loop;" << std::endl;
-  ib << vt->wait_index() << ": __out = __wait;" << std::endl;
-  ib << vt->debug_index() << ": __out = __state[0];" << std::endl;
-  ib << "default: __out = __out_buf2[__vid_buf[1][13:12]];" << std::endl;
-  ib << "endcase" << std::endl;
+  ib << "__out_next = 0;" << std::endl;
+  ib << "for (t2 = 0; t2 <= " << ((nv_size-1)/128) << "; t2 = t2 + 1) begin" << std::endl;
+  ib << "__out_next = __out_next | __out_buf[t2];" << std::endl;
+  ib << "end" << std::endl;
+  //ib << "end" << std::endl;
+  
+  //ib << "always @(posedge __clk) begin: __out_buf_block" << std::endl;
+  //ib << "integer t1;" << std::endl;
+  ib << "for (t1 = 0; t1 <= " << ((nv_size-1)/128) << "; t1 = t1 + 1) begin" << std::endl;
+  ib << "__out_buf[t1] <= __out_buf_next[t1];" << std::endl;
+  ib << "end" << std::endl;
+  ib << "__out <= __out_next;" << std::endl;
+  ib << "__out_valid_buf[3] <= __in_valid & (!__in_read);" << std::endl;
+  ib << "__out_valid_buf[2] <= __out_valid_buf[3];" << std::endl;
+  ib << "__out_valid_buf[1] <= __out_valid_buf[2];" << std::endl;
+  ib << "__out_valid_buf[0] <= __out_valid_buf[1];" << std::endl;
+  ib << "end" << std::endl;
+  
+  ib << "assign __out_data = __out;" << std::endl;
+  ib << "assign __out_valid = __out_valid_buf[0];" << std::endl;
   ib << "assign __wait = __open_loop_tick || __any_triggers || (!__all_final && !__there_were_tasks);" << std::endl;
 
   res->push_back_items(ib.begin(), ib.end());

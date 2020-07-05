@@ -73,9 +73,11 @@ logic global_rst_n;
 logic global_rst;
 
 assign global_clk   = clk_main_a0;
-assign global_rst_n = rst_main_n_sync;
-assign global_rst   = !rst_main_n_sync;
-   
+//assign global_rst_n = rst_main_n_sync;
+//assign global_rst   = !rst_main_n_sync;
+assign global_rst_n = rst_main_n;
+assign global_rst   = !rst_main_n;
+
 
 //------------------------------------
 // PCI-E
