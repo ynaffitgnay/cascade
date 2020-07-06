@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   //cascade::cascade_tiff::cascade_->set_enable_inlining(!::disable_inlining.value());
   //cascade::cascade_tiff::cascade_->set_open_loop_target(::open_loop_target.value());
   //cascade::cascade_tiff::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
-  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9912, 0);
+  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9920, 0);
   cascade::cascade_tiff::cascade_->set_profile_interval(1);
   cascade::cascade_tiff::cascade_->set_stdout(std::cout.rdbuf());
   cascade::cascade_tiff::cascade_->set_stderr(std::cout.rdbuf());
