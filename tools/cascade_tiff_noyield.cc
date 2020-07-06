@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   //cascade::cascade_tiff::cascade_->set_enable_inlining(!::disable_inlining.value());
   //cascade::cascade_tiff::cascade_->set_open_loop_target(::open_loop_target.value());
   //cascade::cascade_tiff::cascade_->set_quartus_server(::compiler_host.value(), ::compiler_port.value());
-  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9911, 0);
+  cascade::cascade_tiff::cascade_->set_vivado_server("localhost", 9910, 0);
   cascade::cascade_tiff::cascade_->set_profile_interval(1);
   cascade::cascade_tiff::cascade_->set_stdout(std::cout.rdbuf());
   cascade::cascade_tiff::cascade_->set_stderr(std::cout.rdbuf());
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   //// Map standard streams to colored outbufs
   cascade::cascade_tiff::cascade_->set_stdin(cin.rdbuf());
   auto* fb = new filebuf();
-  fb->open("tiff_cascade.log", ios::app | ios::out);
+  fb->open("tiff_cascade_noyield.log", ios::app | ios::out);
   cascade::cascade_tiff::cascade_->set_stdlog(fb);
 
   //// Print the initial prompt
@@ -80,15 +80,15 @@ int main(int argc, char** argv) {
   // Start cascade, and read the march file and -e file (if provided)
   cascade::cascade_tiff::cascade_->run();
   *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/f1_minimal_tif.v\"\n"
-	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024_withyield.v\"" << endl;
+	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024.v\"" << endl;
 
   // Block until execution is complete
   cascade::cascade_tiff::cascade_->stop_now();
   
   cascade::cascade_tiff::cascade_->flush();
 
-  // Don't retarget yet
-  //// Sleep for 10 seconds
+  //// Don't retarget yet
+  //// Sleep for 15 seconds
   //usleep(15000000);
   //// Retarget
   //*cascade::cascade_tiff::cascade_ << "initial $retarget(\"regression/f1_minimal_tif\");\n";
