@@ -35,7 +35,7 @@ rm -f ../checkpoints/last_suggestions.rqs
 
 declare -a recipes=("A1" "A0" "A2")
 declare -a freqs=("250MHz" "125MHz" "16MHz")
-for i in 0 1 2;
+for i in 1 2;
 do
 	date
 	echo "Attempting ${freqs[$i]} build..."
