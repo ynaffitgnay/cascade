@@ -276,6 +276,10 @@ inline void ProxyCore<T>::recv() {
         T::interface()->save(path);
         break;
       }
+      case Rpc::Type::YIELD: {
+        T::interface()->yield();
+        break;
+      }
 
       case Rpc::Type::FOPEN: {
         std::string path = "";
