@@ -370,9 +370,12 @@ void Module::compile_and_replace(ModuleDeclaration* md, size_t version, const st
   } else {
     md2 = new ModuleDeclaration(new Attributes(), new Identifier("null"));
   }
-  // Invariant: Initial blocks are removed from pass n compilations
-  if (pass > 1) {
-    DeleteInitial().run(md);
+  // Invariant: Initial blocks are removed from pass n compilations. Note that this may
+  // trigger additional dead code eliminations. These must be performed here to guarantee
+  // deterministic code generation for programs which are compiled multiple times.
+  if (pass == 1) {
+    DeleteInitial().run(md2);
+    DeadCodeEliminate().run(md2);
   }
   // Invariant: First pass for logic must be sw
   if (std->eq("logic") && (pass == 1) && !md->get_attrs()->get<String>("__target")->eq("sw")) {
