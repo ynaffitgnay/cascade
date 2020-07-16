@@ -81,7 +81,9 @@ int main(int argc, char** argv) {
   cascade::cascade_tiff::cascade_->run();
   *cascade::cascade_tiff::cascade_ << "`include \"share/cascade/march/regression/remote_f1_2.v\"\n"
 	      << "`include \"share/cascade/test/benchmark/mips32/run_bubble_128_1024_withyield.v\"" << endl;
-
+  
+  cascade::cascade_tiff::cascade_->flush();
+  
   // Block until execution is complete
   cascade::cascade_tiff::cascade_->stop_now();
   
@@ -92,9 +94,9 @@ int main(int argc, char** argv) {
   usleep(15000000);
   // Retarget
   *cascade::cascade_tiff::cascade_ << "initial $retarget(\"regression/remote_f1_3\");\n";
-  cout << "Retargeted" << endl;
-  
   cascade::cascade_tiff::cascade_->flush();
+  cout << "Retargeted" << endl;
+  cascade::cascade_tiff::cascade_->flush(); 
 
   // Block until execution is complete
   cascade::cascade_tiff::cascade_->stop_now();
