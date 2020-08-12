@@ -2,6 +2,7 @@
 `include "share/cascade/test/benchmark/mips32/alu_control.v"
 `include "share/cascade/test/benchmark/mips32/control.v"
 `include "share/cascade/test/benchmark/mips32/mem.v"
+`include "share/cascade/test/benchmark/mips32/reg_mem.v"
 
 module Mips32Yield(
   input  wire[31:0] instr,
@@ -50,7 +51,7 @@ module Mips32Yield(
   wire[31:0] reg_read1;
   wire[31:0] reg_read2;
   wire[31:0] reg_write;
-  Mem#(5,32) regs(
+  RegMem#(5,32) regs(
     .clock(clock.val),
     .wen(c_reg_write),
     .raddr1(instr[25:21]),
