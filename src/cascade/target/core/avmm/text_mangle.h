@@ -96,8 +96,8 @@ inline Attributes* TextMangle<V,A,T>::build(const Attributes* as) {
 
 template <size_t V, typename A, typename T>
 inline ModuleItem* TextMangle<V,A,T>::build(const RegDeclaration* rd) {
-  return ModuleInfo(md_).is_stateful(rd->get_id()) ?
-    nullptr :
+  return ModuleInfo(md_).is_stateful(rd->get_id()) ? 
+    nullptr : 
     new RegDeclaration(
       new Attributes(),
       rd->accept_id(this),
