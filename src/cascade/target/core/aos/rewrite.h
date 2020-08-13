@@ -248,6 +248,7 @@ inline void Rewrite<T>::emit_shadow_vars(ModuleDeclaration* res, const ModuleDec
     auto* rd = static_cast<const RegDeclaration*>(itr->first->get_parent())->clone();
     rd->get_id()->purge_ids();
     rd->get_id()->push_front_ids(new Id(v.first + "_next"));
+    rd->replace_attrs(new Attributes());
     rd->replace_val(nullptr);
     ib << rd << std::endl;
     delete rd;
